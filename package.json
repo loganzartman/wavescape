@@ -6,6 +6,7 @@
   "author": "Logan",
   "source": "src/index.html",
   "browserslist": "> 0.5%, last 2 versions, not dead",
+  "packageManager": "pnpm@7.18.0",
   "scripts": {
     "start": "yarn parcel",
     "build": "yarn parcel build"
