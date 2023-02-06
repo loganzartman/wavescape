@@ -2,7 +2,7 @@ import './reset.css';
 import './index.css';
 import {plot2d} from './plot';
 
-let running = false;
+let running = true;
 let step = false;
 
 const N = 150; // particle count
