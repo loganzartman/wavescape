@@ -9,7 +9,7 @@
   "packageManager": "pnpm@7.18.0",
   "scripts": {
     "start": "yarn parcel",
-    "build": "yarn parcel build"
+    "build": "yarn parcel build --public-url ./"
   },
   "devDependencies": {
     "eslint": "^8.27.0",
