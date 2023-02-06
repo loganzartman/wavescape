@@ -114,10 +114,19 @@ let pointerX = 0;
 let pointerY = 0;
 let lastPointerX = 0;
 let lastPointerY = 0;
+const screenToWorld = (x, y) => {
+  const dim = Math.min(window.innerWidth, window.innerHeight);
+  const worldX = (x - (window.innerWidth - dim) * 0.5) / dim;
+  const worldY = (y - (window.innerHeight - dim) * 0.5) / dim;
+  return [worldX, worldY];
+};
 addEventListener(
   'pointerdown',
-  () => {
+  (event) => {
     pointerDown = true;
+    const [worldX, worldY] = screenToWorld(event.pageX, event.pageY);
+    lastPointerX = worldX;
+    lastPointerY = worldY;
   },
   false
 );
@@ -131,9 +140,7 @@ addEventListener(
 addEventListener(
   'pointermove',
   (event) => {
-    const dim = Math.min(window.innerWidth, window.innerHeight);
-    const worldX = (event.pageX - (window.innerWidth - dim) * 0.5) / dim;
-    const worldY = (event.pageY - (window.innerHeight - dim) * 0.5) / dim;
+    const [worldX, worldY] = screenToWorld(event.pageX, event.pageY);
     pointerX = worldX;
     pointerY = worldY;
   },
