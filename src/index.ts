@@ -1,6 +1,5 @@
 import './reset.css';
 import './index.css';
-import {plot2d} from './plot';
 
 let running = true;
 let step = false;
@@ -62,9 +61,6 @@ const dW = (dx, dy): [number, number] => {
 };
 
 const init = () => {
-  console.log(plot2d(W).toDataURL());
-  console.log(plot2d(dW).toDataURL());
-
   for (let i = 0; i < N; ++i) {
     position[i] = [rand(), rand()];
     velocity[i] = [0, 0];
