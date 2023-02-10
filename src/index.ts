@@ -1,19 +1,20 @@
 import './reset.css';
 import './index.css';
 import {plot2d} from './plot';
+import {debugData, notNaN} from './debug';
 
 let running = true;
 let step = false;
 
-const N = 150; // particle count
+const N = 50; // particle count
 const R = 0.02; // particle radius
-const position: number[][] = Array.from({length: N});
-const velocity: number[][] = Array.from({length: N});
-const mass: number[] = Array.from({length: N});
+const position: number[][] = debugData(Array.from({length: N}));
+const velocity: number[][] = debugData(Array.from({length: N}));
+const mass: number[] = debugData(Array.from({length: N}));
 
-const density: number[] = Array.from({length: N});
-const velocity_guess: number[][] = Array.from({length: N});
-const f_pressure: number[][] = Array.from({length: N});
+const density: number[] = debugData(Array.from({length: N}));
+const velocity_guess: number[][] = debugData(Array.from({length: N}));
+const f_pressure: number[][] = debugData(Array.from({length: N}));
 
 const viscosity = 0.005;
 const stiffness = 1.0;
@@ -162,8 +163,8 @@ const simulate = () => {
     if (!pointerDown) {
       return [0, 0];
     }
-    const mag = 50;
-    const rad = 0.05;
+    const mag = 200;
+    const rad = 0.1;
     const dist = length(x - pointerX, y - pointerY);
     const f = 1 - Math.min(1, dist / rad);
     return [mag * pointerDx * f, mag * pointerDy * f];
@@ -186,18 +187,21 @@ const simulate = () => {
     let laplacianVY = 0;
     for (let j = 0; j < N; ++j) {
       if (i === j) continue;
-      const dx = position[j][0] - position[i][0];
-      const dy = position[j][1] - position[i][1];
-      const term =
+      const dx = notNaN(position[j][0] - position[i][0]);
+      const dy = notNaN(position[j][1] - position[i][1]);
+      const term = notNaN(
         (2 * length(...dW(dx, dy))) /
-        length(
-          position[j][0] - position[i][0],
-          position[j][1] - position[i][1]
-        );
-      laplacianVX +=
-        (mass[j] / density[j]) * (velocity[j][0] - velocity[i][0]) * term;
-      laplacianVY +=
-        (mass[j] / density[j]) * (velocity[j][1] - velocity[i][1]) * term;
+          length(
+            position[j][0] - position[i][0],
+            position[j][1] - position[i][1]
+          )
+      );
+      laplacianVX += notNaN(
+        (mass[j] / density[j]) * (velocity[j][0] - velocity[i][0]) * term
+      );
+      laplacianVY += notNaN(
+        (mass[j] / density[j]) * (velocity[j][1] - velocity[i][1]) * term
+      );
     }
     const fViscosityX = mass[i] * viscosity * laplacianVX;
     const fViscosityY = mass[i] * viscosity * laplacianVY;
