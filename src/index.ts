@@ -60,17 +60,7 @@ const dW = (dx, dy): [number, number] => {
   }
 };
 
-const init = () => {
-  for (let i = 0; i < N; ++i) {
-    position[i] = [rand(), rand()];
-    velocity[i] = [0, 0];
-    mass[i] = 1.0;
-
-    density[i] = 0;
-    velocity_guess[i] = [0, 0];
-    f_pressure[i] = [0, 0];
-  }
-
+const makeDamBreak = () => {
   const size = R * 2;
   const border = 0.1;
   let i = 0;
@@ -88,6 +78,21 @@ const init = () => {
     }
   }
 };
+
+const init = () => {
+  for (let i = 0; i < N; ++i) {
+    position[i] = [rand(), rand()];
+    velocity[i] = [0, 0];
+    mass[i] = 1.0;
+
+    density[i] = 0;
+    velocity_guess[i] = [0, 0];
+    f_pressure[i] = [0, 0];
+  }
+
+  makeDamBreak();
+};
+
 init();
 
 const canvas = document.createElement('canvas');
@@ -119,12 +124,34 @@ let pointerX = 0;
 let pointerY = 0;
 let lastPointerX = 0;
 let lastPointerY = 0;
-const screenToWorld = (x, y) => {
+let pointerDx = 0;
+let pointerDy = 0;
+
+const updatePointer = (realDt: number) => {
+  pointerDx = (pointerX - lastPointerX) / realDt;
+  pointerDy = (pointerY - lastPointerY) / realDt;
+  lastPointerX = pointerX;
+  lastPointerY = pointerY;
+};
+
+const getMouseForce = (x: number, y: number) => {
+  if (!pointerDown) {
+    return [0, 0];
+  }
+  const mag = 20;
+  const rad = 0.1;
+  const dist = length(x - pointerX, y - pointerY);
+  const f = 1 - Math.min(1, dist / rad);
+  return [mag * pointerDx * f, mag * pointerDy * f];
+};
+
+const screenToWorld = (x: number, y: number) => {
   const dim = Math.min(window.innerWidth, window.innerHeight);
   const worldX = (x - (window.innerWidth - dim) * 0.5) / dim;
   const worldY = (y - (window.innerHeight - dim) * 0.5) / dim;
   return [worldX, worldY];
 };
+
 addEventListener(
   'pointerdown',
   (event) => {
@@ -152,29 +179,7 @@ addEventListener(
   false
 );
 
-let tLast = Date.now();
-const simulate = () => {
-  const dt = 0.01;
-  const realDt = (Date.now() - tLast) / 1000;
-  tLast = Date.now();
-
-  const pointerDx = (pointerX - lastPointerX) / realDt;
-  const pointerDy = (pointerY - lastPointerY) / realDt;
-  lastPointerX = pointerX;
-  lastPointerY = pointerY;
-
-  const getMouseForce = (x, y) => {
-    if (!pointerDown) {
-      return [0, 0];
-    }
-    const mag = 20;
-    const rad = 0.1;
-    const dist = length(x - pointerX, y - pointerY);
-    const f = 1 - Math.min(1, dist / rad);
-    return [mag * pointerDx * f, mag * pointerDy * f];
-  };
-
-  // reconstruct particle density
+const computeDensity = () => {
   for (let i = 0; i < N; ++i) {
     density[i] = 0;
     for (let j = 0; j < N; ++j) {
@@ -183,8 +188,9 @@ const simulate = () => {
       density[i] += mass[j] * W(dx, dy);
     }
   }
+};
 
-  // compute velocity guess
+const computeVelocityGuess = ({dt}: {dt: number}) => {
   for (let i = 0; i < N; ++i) {
     // viscosity
     let laplacianVx = 0;
@@ -238,8 +244,9 @@ const simulate = () => {
     velocity_guess[i][1] =
       velocity[i][1] + (dt / mass[i]) * (fViscosityY + fExtY);
   }
+};
 
-  // compute pressure
+const computePressure = () => {
   for (let i = 0; i < N; ++i) {
     f_pressure[i][0] = 0;
     f_pressure[i][1] = 0;
@@ -259,8 +266,9 @@ const simulate = () => {
       f_pressure[i][1] += term * dWy;
     }
   }
+};
 
-  // update particles
+const advectParticles = ({dt}: {dt: number}) => {
   for (let i = 0; i < N; ++i) {
     velocity[i][0] = velocity_guess[i][0] + (dt / mass[i]) * f_pressure[i][0];
     velocity[i][1] = velocity_guess[i][1] + (dt / mass[i]) * f_pressure[i][1];
@@ -268,6 +276,20 @@ const simulate = () => {
     position[i][0] += dt * velocity[i][0];
     position[i][1] += dt * velocity[i][1];
   }
+};
+
+let tLast = Date.now();
+const simulate = () => {
+  const dt = 0.01;
+  const realDt = (Date.now() - tLast) / 1000;
+  tLast = Date.now();
+
+  updatePointer(realDt);
+
+  computeDensity();
+  computeVelocityGuess({dt});
+  computePressure();
+  advectParticles({dt});
 };
 
 const frame = () => {
