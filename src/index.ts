@@ -5,7 +5,7 @@ import {plot2d} from './plot';
 let running = true;
 let step = false;
 
-const N = 150; // particle count
+const N = 200; // particle count
 const R = 0.02; // particle radius
 const position: number[][] = Array.from({length: N});
 const velocity: number[][] = Array.from({length: N});
@@ -15,9 +15,9 @@ const density: number[] = Array.from({length: N});
 const velocity_guess: number[][] = Array.from({length: N});
 const f_pressure: number[][] = Array.from({length: N});
 
-const viscosity = 0.005;
+const viscosity = 0.002;
 const stiffness = 1.0;
-const rest_density = 800;
+const rest_density = 600;
 const smoothing_h = 0.1;
 const eta = 0.01 * smoothing_h;
 
@@ -162,8 +162,8 @@ const simulate = () => {
     if (!pointerDown) {
       return [0, 0];
     }
-    const mag = 50;
-    const rad = 0.05;
+    const mag = 20;
+    const rad = 0.1;
     const dist = length(x - pointerX, y - pointerY);
     const f = 1 - Math.min(1, dist / rad);
     return [mag * pointerDx * f, mag * pointerDy * f];
