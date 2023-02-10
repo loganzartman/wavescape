@@ -19,7 +19,7 @@ const viscosity = 0.005;
 const stiffness = 1.0;
 const rest_density = 800;
 const smoothing_h = 0.1;
-const center_gravity = 2.0;
+const eta = 0.01 * smoothing_h;
 
 const smoothing_h_inv = 1.0 / smoothing_h;
 const sigma2 = 40 / (7 * Math.PI * smoothing_h ** 2);
@@ -45,8 +45,8 @@ const W = (dx, dy): number => {
 const dW = (dx, dy): [number, number] => {
   // derivative of cubic spline kernel
   const len = length(dx, dy);
-  const dxq = dx / (smoothing_h * len);
-  const dyq = dy / (smoothing_h * len);
+  const dxq = dx / (smoothing_h * len + eta);
+  const dyq = dy / (smoothing_h * len + eta);
 
   const q = smoothing_h_inv * len;
   if (0 <= q && q <= 0.5) {
@@ -188,7 +188,6 @@ const simulate = () => {
       if (i === j) continue;
       const dx = position[j][0] - position[i][0];
       const dy = position[j][1] - position[i][1];
-      const eta = 0.01 * smoothing_h;
       const lenR = length(dx, dy);
       const term = (2 * length(...dW(dx, dy))) / (lenR + eta);
       laplacianVX +=
