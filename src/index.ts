@@ -179,10 +179,17 @@ addEventListener(
   false
 );
 
+const getNeighbors = function* (index: number) {
+  for (let j = 0; j < N; ++j) {
+    if (index === j) continue;
+    yield j;
+  }
+};
+
 const computeDensity = () => {
   for (let i = 0; i < N; ++i) {
-    density[i] = 0;
-    for (let j = 0; j < N; ++j) {
+    density[i] = mass[i] * W(0, 0);
+    for (const j of getNeighbors(i)) {
       const dx = position[j][0] - position[i][0];
       const dy = position[j][1] - position[i][1];
       density[i] += mass[j] * W(dx, dy);
@@ -195,8 +202,7 @@ const computeVelocityGuess = ({dt}: {dt: number}) => {
     // viscosity
     let laplacianVx = 0;
     let laplacianVy = 0;
-    for (let j = 0; j < N; ++j) {
-      if (i === j) continue;
+    for (const j of getNeighbors(i)) {
       const dx = position[i][0] - position[j][0];
       const dy = position[i][1] - position[j][1];
       const dvx = velocity[i][0] - velocity[j][0];
@@ -250,8 +256,7 @@ const computePressure = () => {
   for (let i = 0; i < N; ++i) {
     f_pressure[i][0] = 0;
     f_pressure[i][1] = 0;
-    for (let j = 0; j < N; ++j) {
-      if (i === j) continue;
+    for (const j of getNeighbors(i)) {
       const pressurei = stiffness * (density[i] / rest_density - 1);
       const pressurej = stiffness * (density[j] / rest_density - 1);
       const dx = position[j][0] - position[i][0];
