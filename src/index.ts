@@ -5,6 +5,7 @@ import {plot2d} from './plot';
 let running = true;
 let step = false;
 
+const D = 2; // dimension
 const N = 200; // particle count
 const R = 0.02; // particle radius
 const position: number[][] = Array.from({length: N});
@@ -19,16 +20,16 @@ const viscosity = 0.002;
 const stiffness = 1.0;
 const rest_density = 600;
 const smoothing_h = 0.1;
-const eta = 0.01 * smoothing_h;
+const eta = 0.01 * smoothing_h ** 2;
 
 const smoothing_h_inv = 1.0 / smoothing_h;
 const sigma2 = 40 / (7 * Math.PI * smoothing_h ** 2);
 
 const rand = (a = 0.0, b = 1.0) => Math.random() * (b - a) + a;
 
-const length = (x, y): number => {
-  return Math.sqrt(x * x + y * y);
-};
+const length = (x, y): number => Math.sqrt(x * x + y * y);
+
+const dot = (x1, y1, x2, y2): number => x1 * x2 + y1 * y2;
 
 const W = (dx, dy): number => {
   // cubic spline kernel
@@ -190,21 +191,24 @@ const simulate = () => {
   // compute velocity guess
   for (let i = 0; i < N; ++i) {
     // viscosity
-    let laplacianVX = 0;
-    let laplacianVY = 0;
+    let laplacianVx = 0;
+    let laplacianVy = 0;
     for (let j = 0; j < N; ++j) {
       if (i === j) continue;
-      const dx = position[j][0] - position[i][0];
-      const dy = position[j][1] - position[i][1];
-      const lenR = length(dx, dy);
-      const term = (2 * length(...dW(dx, dy))) / (lenR + eta);
-      laplacianVX +=
-        (mass[j] / density[j]) * (velocity[j][0] - velocity[i][0]) * term;
-      laplacianVY +=
-        (mass[j] / density[j]) * (velocity[j][1] - velocity[i][1]) * term;
+      const dx = position[i][0] - position[j][0];
+      const dy = position[i][1] - position[j][1];
+      const dvx = velocity[i][0] - velocity[j][0];
+      const dvy = velocity[i][1] - velocity[j][1];
+      const scale = 2 * (D + 2);
+      const volume = mass[j] / (density[j] + eta);
+      const term = dot(dvx, dvy, dx, dy) / (length(dx, dy) ** 2 + eta);
+
+      const [dWx, dWy] = dW(dx, dy);
+      laplacianVx += scale * volume * term * dWx;
+      laplacianVy += scale * volume * term * dWy;
     }
-    const fViscosityX = mass[i] * viscosity * laplacianVX;
-    const fViscosityY = mass[i] * viscosity * laplacianVY;
+    const fViscosityX = viscosity * laplacianVx;
+    const fViscosityY = viscosity * laplacianVy;
 
     // external forces
     const [fMouseX, fMouseY] = getMouseForce(position[i][0], position[i][1]);
