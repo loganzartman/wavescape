@@ -215,6 +215,21 @@ const simulate = () => {
       velocity[i][0] + (dt / mass[i]) * (fViscosityX + fExtX);
     velocity_guess[i][1] =
       velocity[i][1] + (dt / mass[i]) * (fViscosityY + fExtY);
+
+    const wallSize = R;
+    const kWall = 100;
+    if (position[i][0] < wallSize) {
+      velocity_guess[i][0] += kWall * (wallSize - position[i][0]);
+    }
+    if (position[i][1] < wallSize) {
+      velocity_guess[i][1] += kWall * (wallSize - position[i][1]);
+    }
+    if (position[i][0] > 1 - wallSize) {
+      velocity_guess[i][0] -= kWall * (position[i][0] - (1 - wallSize));
+    }
+    if (position[i][1] > 1 - wallSize) {
+      velocity_guess[i][1] -= kWall * (position[i][1] - (1 - wallSize));
+    }
   }
 
   // compute pressure
