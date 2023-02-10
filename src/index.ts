@@ -207,37 +207,36 @@ const simulate = () => {
     const fViscosityY = mass[i] * viscosity * laplacianVY;
 
     // external forces
-    let gx = 0.5 - position[i][0];
-    let gy = 0.5 - position[i][1];
-    let glen = length(gx, gy);
-    gx /= glen;
-    gy /= glen;
-    const [mouseForceX, mouseForceY] = getMouseForce(
-      position[i][0],
-      position[i][1]
-    );
-    const fExtX = gx * center_gravity + mouseForceX;
-    const fExtY = gy * center_gravity + mouseForceY;
+    const [fMouseX, fMouseY] = getMouseForce(position[i][0], position[i][1]);
+
+    const fGravX = 0;
+    const fGravY = 0.5;
+
+    // hacky wall penalty force
+    const wallSize = R;
+    const kWall = 1000;
+    let fWallX = 0;
+    let fWallY = 0;
+    if (position[i][0] < wallSize) {
+      fWallX += kWall * (wallSize - position[i][0]);
+    }
+    if (position[i][1] < wallSize) {
+      fWallY += kWall * (wallSize - position[i][1]);
+    }
+    if (position[i][0] > 1 - wallSize) {
+      fWallX -= kWall * (position[i][0] - (1 - wallSize));
+    }
+    if (position[i][1] > 1 - wallSize) {
+      fWallY -= kWall * (position[i][1] - (1 - wallSize));
+    }
+
+    const fExtX = fMouseX + fGravX + fWallX;
+    const fExtY = fMouseY + fGravY + fWallY;
 
     velocity_guess[i][0] =
       velocity[i][0] + (dt / mass[i]) * (fViscosityX + fExtX);
     velocity_guess[i][1] =
       velocity[i][1] + (dt / mass[i]) * (fViscosityY + fExtY);
-
-    const wallSize = R;
-    const kWall = 100;
-    if (position[i][0] < wallSize) {
-      velocity_guess[i][0] += kWall * (wallSize - position[i][0]);
-    }
-    if (position[i][1] < wallSize) {
-      velocity_guess[i][1] += kWall * (wallSize - position[i][1]);
-    }
-    if (position[i][0] > 1 - wallSize) {
-      velocity_guess[i][0] -= kWall * (position[i][0] - (1 - wallSize));
-    }
-    if (position[i][1] > 1 - wallSize) {
-      velocity_guess[i][1] -= kWall * (position[i][1] - (1 - wallSize));
-    }
   }
 
   // compute pressure
