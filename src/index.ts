@@ -74,12 +74,20 @@ const init = () => {
     f_pressure[i] = [0, 0];
   }
 
-  const rootN = Math.floor(Math.sqrt(N));
-  for (let x = 0; x < rootN; ++x) {
-    for (let y = 0; y < rootN; ++y) {
-      const i = y * rootN + x;
-      position[i][0] = (x + 0.5) / rootN + rand(-0.01, 0.01);
-      position[i][1] = (y + 0.5) / rootN + rand(-0.01, 0.01);
+  const size = R * 2;
+  const border = 0.1;
+  let i = 0;
+  let x = 0;
+  let y = 0;
+  let h = Math.floor((1 - border * 2) / size);
+  while (i < N) {
+    position[i][0] = border + x * size;
+    position[i][1] = border + y * size;
+    ++i;
+    ++y;
+    if (y > h) {
+      ++x;
+      y = 0;
     }
   }
 };
