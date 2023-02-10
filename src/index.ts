@@ -188,12 +188,9 @@ const simulate = () => {
       if (i === j) continue;
       const dx = position[j][0] - position[i][0];
       const dy = position[j][1] - position[i][1];
-      const term =
-        (2 * length(...dW(dx, dy))) /
-        length(
-          position[j][0] - position[i][0],
-          position[j][1] - position[i][1]
-        );
+      const eta = 0.01 * smoothing_h;
+      const lenR = length(dx, dy);
+      const term = (2 * length(...dW(dx, dy))) / (lenR + eta);
       laplacianVX +=
         (mass[j] / density[j]) * (velocity[j][0] - velocity[i][0]) * term;
       laplacianVY +=
