@@ -1,18 +1,18 @@
 import {State} from './state';
 import {Params} from './params';
 import {W, dW} from './kernel';
-import {updateNeighbors, getNeighbors} from './neighbors';
+import {updateNeighbors, forEachNeighbor} from './neighbors';
 import {dot, length} from './util';
 import {getPointerForce} from './pointer';
 
 export const updateDensity = (state: State, params: Params) => {
   for (let i = 0; i < state.n; ++i) {
     state.density[i] = state.mass[i] * W(params, 0, 0);
-    for (const j of getNeighbors(state, params, i)) {
+    forEachNeighbor(state, params, i, (j) => {
       const dx = state.position[j][0] - state.position[i][0];
       const dy = state.position[j][1] - state.position[i][1];
       state.density[i] += state.mass[j] * W(params, dx, dy);
-    }
+    });
   }
 };
 
@@ -25,7 +25,7 @@ export const updateVelocityGuess = (
     // viscosity
     let laplacianVx = 0;
     let laplacianVy = 0;
-    for (const j of getNeighbors(state, params, i)) {
+    forEachNeighbor(state, params, i, (j) => {
       const dx = state.position[i][0] - state.position[j][0];
       const dy = state.position[i][1] - state.position[j][1];
       const dvx = state.velocity[i][0] - state.velocity[j][0];
@@ -37,7 +37,7 @@ export const updateVelocityGuess = (
       const [dWx, dWy] = dW(params, dx, dy);
       laplacianVx += scale * volume * term * dWx;
       laplacianVy += scale * volume * term * dWy;
-    }
+    });
     const fViscosityX = params.viscosity * laplacianVx;
     const fViscosityY = params.viscosity * laplacianVy;
 
@@ -82,7 +82,7 @@ const updatePressure = (state: State, params: Params) => {
   for (let i = 0; i < state.n; ++i) {
     state.fPressure[i][0] = 0;
     state.fPressure[i][1] = 0;
-    for (const j of getNeighbors(state, params, i)) {
+    forEachNeighbor(state, params, i, (j) => {
       const pressurei =
         params.stiffness * (state.density[i] / params.restDensity - 1);
       const pressurej =
@@ -97,7 +97,7 @@ const updatePressure = (state: State, params: Params) => {
         (pressurei / state.density[i] ** 2 + pressurej / state.density[j] ** 2);
       state.fPressure[i][0] += term * dWx;
       state.fPressure[i][1] += term * dWy;
-    }
+    });
   }
 };
 

@@ -26,11 +26,12 @@ export const updateNeighbors = (state: State, params: Params) => {
   }
 };
 
-export const getNeighbors = function* (
+export const forEachNeighbor = (
   state: State,
   params: Params,
-  index: number
-) {
+  index: number,
+  fn: (i: number) => void
+) => {
   const [cx0, cy0] = posToCell(
     params,
     state.position[index][0] - params.hSmoothing,
@@ -45,7 +46,9 @@ export const getNeighbors = function* (
     for (let cy = cy0; cy <= cy1; ++cy) {
       const neighbors = neighborTable.get(cellKey(cx, cy));
       if (neighbors) {
-        yield* neighbors;
+        for (const n of neighbors) {
+          fn(n);
+        }
       }
     }
   }
