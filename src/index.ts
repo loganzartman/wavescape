@@ -1,28 +1,14 @@
 import './reset.css';
 import './index.css';
+import {makeDamBreak} from './scene';
+import {State, allocateState} from './state';
+import {Params, makeDefaultParams} from './params';
 
 let running = true;
 let step = false;
 
-const D = 2; // dimension
-const N = 500; // particle count
-const R = 0.01; // particle radius
-const position: number[][] = Array.from({length: N});
-const velocity: number[][] = Array.from({length: N});
-const mass: number[] = Array.from({length: N});
-
-const density: number[] = Array.from({length: N});
-const velocity_guess: number[][] = Array.from({length: N});
-const f_pressure: number[][] = Array.from({length: N});
-
-const viscosity = 0.002;
-const stiffness = 1.0;
-const rest_density = 3000;
-const smoothing_h = 0.05;
-const eta = 0.01 * smoothing_h ** 2;
-
-const smoothing_h_inv = 1.0 / smoothing_h;
-const sigma2 = 40 / (7 * Math.PI * smoothing_h ** 2);
+const state: State = allocateState({n: 500});
+const params: Params = makeDefaultParams();
 
 const rand = (a = 0.0, b = 1.0) => Math.random() * (b - a) + a;
 
@@ -32,11 +18,11 @@ const dot = (x1, y1, x2, y2): number => x1 * x2 + y1 * y2;
 
 const W = (dx, dy): number => {
   // cubic spline kernel
-  const q = smoothing_h_inv * length(dx, dy);
+  const q = length(dx, dy) / params.hSmoothing;
   if (0 <= q && q <= 0.5) {
-    return sigma2 * (6 * (q ** 3 - q ** 2) + 1);
+    return params.sigma * (6 * (q ** 3 - q ** 2) + 1);
   } else if (0.5 < q && q <= 1) {
-    return sigma2 * (2 * (1 - q) ** 3);
+    return params.sigma * (2 * (1 - q) ** 3);
   } else {
     return 0;
   }
@@ -45,52 +31,23 @@ const W = (dx, dy): number => {
 const dW = (dx, dy): [number, number] => {
   // derivative of cubic spline kernel
   const len = length(dx, dy);
-  const dxq = dx / (smoothing_h * len + eta);
-  const dyq = dy / (smoothing_h * len + eta);
+  const dxq = dx / (params.hSmoothing * len + params.eta);
+  const dyq = dy / (params.hSmoothing * len + params.eta);
 
-  const q = smoothing_h_inv * len;
+  const q = len / params.hSmoothing;
   if (0 <= q && q <= 0.5) {
-    const term = sigma2 * (18 * q ** 2 - 12 * q);
+    const term = params.sigma * (18 * q ** 2 - 12 * q);
     return [term * dxq, term * dyq];
   } else if (0.5 < q && q <= 1) {
-    const term = sigma2 * (-6 * (1 - q) ** 2);
+    const term = params.sigma * (-6 * (1 - q) ** 2);
     return [term * dxq, term * dyq];
   } else {
     return [0, 0];
   }
 };
 
-const makeDamBreak = () => {
-  const size = R * 2;
-  const border = 0.05;
-  let i = 0;
-  let x = 0;
-  let y = 0;
-  let h = Math.floor((1 - border * 2) / size);
-  while (i < N) {
-    position[i][0] = border + x * size;
-    position[i][1] = border + y * size;
-    ++i;
-    ++y;
-    if (y > h) {
-      ++x;
-      y = 0;
-    }
-  }
-};
-
 const init = () => {
-  for (let i = 0; i < N; ++i) {
-    position[i] = [rand(), rand()];
-    velocity[i] = [0, 0];
-    mass[i] = 1.0;
-
-    density[i] = 0;
-    velocity_guess[i] = [0, 0];
-    f_pressure[i] = [0, 0];
-  }
-
-  makeDamBreak();
+  makeDamBreak(state, params);
 };
 
 init();
@@ -180,7 +137,7 @@ addEventListener(
 );
 
 const neighborTable = new Map<number, number[]>();
-const neighborCellSize = 1.0 * smoothing_h;
+const neighborCellSize = 1.0 * params.hSmoothing;
 
 const cellKey = (i: number, j: number) => (73856093 * i) ^ (19349663 * j);
 
@@ -191,8 +148,11 @@ const posToCell = (x: number, y: number): [number, number] => [
 
 const updateNeighbors = () => {
   neighborTable.clear();
-  for (let i = 0; i < N; ++i) {
-    const [cellX, cellY] = posToCell(position[i][0], position[i][1]);
+  for (let i = 0; i < state.n; ++i) {
+    const [cellX, cellY] = posToCell(
+      state.position[i][0],
+      state.position[i][1]
+    );
     const key = cellKey(cellX, cellY);
     if (!neighborTable.has(key)) {
       neighborTable.set(key, []);
@@ -203,12 +163,12 @@ const updateNeighbors = () => {
 
 const getNeighbors = function* (index: number) {
   const [cx0, cy0] = posToCell(
-    position[index][0] - smoothing_h,
-    position[index][1] - smoothing_h
+    state.position[index][0] - params.hSmoothing,
+    state.position[index][1] - params.hSmoothing
   );
   const [cx1, cy1] = posToCell(
-    position[index][0] + smoothing_h,
-    position[index][1] + smoothing_h
+    state.position[index][0] + params.hSmoothing,
+    state.position[index][1] + params.hSmoothing
   );
   for (let cx = cx0; cx <= cx1; ++cx) {
     for (let cy = cy0; cy <= cy1; ++cy) {
@@ -221,106 +181,113 @@ const getNeighbors = function* (index: number) {
 };
 
 const getNeighborsBrute = function* (index: number) {
-  for (let j = 0; j < N; ++j) {
+  for (let j = 0; j < state.n; ++j) {
     if (index === j) continue;
     yield j;
   }
 };
 
 const computeDensity = () => {
-  for (let i = 0; i < N; ++i) {
-    density[i] = mass[i] * W(0, 0);
+  for (let i = 0; i < state.n; ++i) {
+    state.density[i] = state.mass[i] * W(0, 0);
     for (const j of getNeighbors(i)) {
-      const dx = position[j][0] - position[i][0];
-      const dy = position[j][1] - position[i][1];
-      density[i] += mass[j] * W(dx, dy);
+      const dx = state.position[j][0] - state.position[i][0];
+      const dy = state.position[j][1] - state.position[i][1];
+      state.density[i] += state.mass[j] * W(dx, dy);
     }
   }
 };
 
 const computeVelocityGuess = ({dt}: {dt: number}) => {
-  for (let i = 0; i < N; ++i) {
+  for (let i = 0; i < state.n; ++i) {
     // viscosity
     let laplacianVx = 0;
     let laplacianVy = 0;
     for (const j of getNeighbors(i)) {
-      const dx = position[i][0] - position[j][0];
-      const dy = position[i][1] - position[j][1];
-      const dvx = velocity[i][0] - velocity[j][0];
-      const dvy = velocity[i][1] - velocity[j][1];
-      const scale = 2 * (D + 2);
-      const volume = mass[j] / (density[j] + eta);
-      const term = dot(dvx, dvy, dx, dy) / (length(dx, dy) ** 2 + eta);
+      const dx = state.position[i][0] - state.position[j][0];
+      const dy = state.position[i][1] - state.position[j][1];
+      const dvx = state.velocity[i][0] - state.velocity[j][0];
+      const dvy = state.velocity[i][1] - state.velocity[j][1];
+      const scale = 2 * (params.dimension + 2);
+      const volume = state.mass[j] / (state.density[j] + params.eta);
+      const term = dot(dvx, dvy, dx, dy) / (length(dx, dy) ** 2 + params.eta);
 
       const [dWx, dWy] = dW(dx, dy);
       laplacianVx += scale * volume * term * dWx;
       laplacianVy += scale * volume * term * dWy;
     }
-    const fViscosityX = viscosity * laplacianVx;
-    const fViscosityY = viscosity * laplacianVy;
+    const fViscosityX = params.viscosity * laplacianVx;
+    const fViscosityY = params.viscosity * laplacianVy;
 
     // external forces
-    const [fMouseX, fMouseY] = getMouseForce(position[i][0], position[i][1]);
+    const [fMouseX, fMouseY] = getMouseForce(
+      state.position[i][0],
+      state.position[i][1]
+    );
 
     const fGravX = 0;
     const fGravY = 0.5;
 
     // hacky wall penalty force
-    const wallSize = R;
+    const wallSize = params.particleRadius;
     const kWall = 2000;
     let fWallX = 0;
     let fWallY = 0;
-    if (position[i][0] < wallSize) {
-      fWallX += kWall * (wallSize - position[i][0]);
+    if (state.position[i][0] < wallSize) {
+      fWallX += kWall * (wallSize - state.position[i][0]);
     }
-    if (position[i][1] < wallSize) {
-      fWallY += kWall * (wallSize - position[i][1]);
+    if (state.position[i][1] < wallSize) {
+      fWallY += kWall * (wallSize - state.position[i][1]);
     }
-    if (position[i][0] > 1 - wallSize) {
-      fWallX -= kWall * (position[i][0] - (1 - wallSize));
+    if (state.position[i][0] > 1 - wallSize) {
+      fWallX -= kWall * (state.position[i][0] - (1 - wallSize));
     }
-    if (position[i][1] > 1 - wallSize) {
-      fWallY -= kWall * (position[i][1] - (1 - wallSize));
+    if (state.position[i][1] > 1 - wallSize) {
+      fWallY -= kWall * (state.position[i][1] - (1 - wallSize));
     }
 
     const fExtX = fMouseX + fGravX + fWallX;
     const fExtY = fMouseY + fGravY + fWallY;
 
-    velocity_guess[i][0] =
-      velocity[i][0] + (dt / mass[i]) * (fViscosityX + fExtX);
-    velocity_guess[i][1] =
-      velocity[i][1] + (dt / mass[i]) * (fViscosityY + fExtY);
+    state.velocityGuess[i][0] =
+      state.velocity[i][0] + (dt / state.mass[i]) * (fViscosityX + fExtX);
+    state.velocityGuess[i][1] =
+      state.velocity[i][1] + (dt / state.mass[i]) * (fViscosityY + fExtY);
   }
 };
 
 const computePressure = () => {
-  for (let i = 0; i < N; ++i) {
-    f_pressure[i][0] = 0;
-    f_pressure[i][1] = 0;
+  for (let i = 0; i < state.n; ++i) {
+    state.fPressure[i][0] = 0;
+    state.fPressure[i][1] = 0;
     for (const j of getNeighbors(i)) {
-      const pressurei = stiffness * (density[i] / rest_density - 1);
-      const pressurej = stiffness * (density[j] / rest_density - 1);
-      const dx = position[j][0] - position[i][0];
-      const dy = position[j][1] - position[i][1];
+      const pressurei =
+        params.stiffness * (state.density[i] / params.restDensity - 1);
+      const pressurej =
+        params.stiffness * (state.density[j] / params.restDensity - 1);
+      const dx = state.position[j][0] - state.position[i][0];
+      const dy = state.position[j][1] - state.position[i][1];
       const [dWx, dWy] = dW(dx, dy);
 
       const term =
-        density[i] *
-        mass[j] *
-        (pressurei / density[i] ** 2 + pressurej / density[j] ** 2);
-      f_pressure[i][0] += term * dWx;
-      f_pressure[i][1] += term * dWy;
+        state.density[i] *
+        state.mass[j] *
+        (pressurei / state.density[i] ** 2 + pressurej / state.density[j] ** 2);
+      state.fPressure[i][0] += term * dWx;
+      state.fPressure[i][1] += term * dWy;
     }
   }
 };
 
 const advectParticles = ({dt}: {dt: number}) => {
-  for (let i = 0; i < N; ++i) {
-    velocity[i][0] = velocity_guess[i][0] + (dt / mass[i]) * f_pressure[i][0];
-    velocity[i][1] = velocity_guess[i][1] + (dt / mass[i]) * f_pressure[i][1];
+  for (let i = 0; i < state.n; ++i) {
+    state.velocity[i][0] =
+      state.velocityGuess[i][0] + (dt / state.mass[i]) * state.fPressure[i][0];
+    state.velocity[i][1] =
+      state.velocityGuess[i][1] + (dt / state.mass[i]) * state.fPressure[i][1];
 
-    position[i][0] += dt * velocity[i][0];
-    position[i][1] += dt * velocity[i][1];
+    state.position[i][0] += dt * state.velocity[i][0];
+    state.position[i][1] += dt * state.velocity[i][1];
   }
 };
 
@@ -366,19 +333,27 @@ const frame = () => {
   let maxdens = 0,
     maxpresx = 0,
     maxpresy = 0;
-  for (let i = 0; i < N; ++i) {
-    maxdens = Math.max(maxdens, Math.abs(density[i]));
-    maxpresx = Math.max(maxpresx, Math.abs(f_pressure[i][0]));
-    maxpresy = Math.max(maxpresy, Math.abs(f_pressure[i][1]));
+  for (let i = 0; i < state.n; ++i) {
+    maxdens = Math.max(maxdens, Math.abs(state.density[i]));
+    maxpresx = Math.max(maxpresx, Math.abs(state.fPressure[i][0]));
+    maxpresy = Math.max(maxpresy, Math.abs(state.fPressure[i][1]));
   }
 
   // render
-  for (let i = 0; i < N; ++i) {
+  for (let i = 0; i < state.n; ++i) {
     ctx.beginPath();
-    ctx.ellipse(position[i][0], position[i][1], R, R, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgb(${((density[i] / maxdens) * 0.5 + 0.5) * 255}, ${
-      ((f_pressure[i][0] / maxpresx) * 0.5 + 0.5) * 255
-    }, ${((f_pressure[i][1] / maxpresy) * 0.5 + 0.5) * 255})`;
+    ctx.ellipse(
+      state.position[i][0],
+      state.position[i][1],
+      params.particleRadius,
+      params.particleRadius,
+      0,
+      0,
+      Math.PI * 2
+    );
+    ctx.fillStyle = `rgb(${((state.density[i] / maxdens) * 0.5 + 0.5) * 255}, ${
+      ((state.fPressure[i][0] / maxpresx) * 0.5 + 0.5) * 255
+    }, ${((state.fPressure[i][1] / maxpresy) * 0.5 + 0.5) * 255})`;
     ctx.fill();
   }
 
