@@ -5,8 +5,8 @@ let running = true;
 let step = false;
 
 const D = 2; // dimension
-const N = 200; // particle count
-const R = 0.02; // particle radius
+const N = 500; // particle count
+const R = 0.01; // particle radius
 const position: number[][] = Array.from({length: N});
 const velocity: number[][] = Array.from({length: N});
 const mass: number[] = Array.from({length: N});
@@ -17,8 +17,8 @@ const f_pressure: number[][] = Array.from({length: N});
 
 const viscosity = 0.002;
 const stiffness = 1.0;
-const rest_density = 600;
-const smoothing_h = 0.1;
+const rest_density = 3000;
+const smoothing_h = 0.05;
 const eta = 0.01 * smoothing_h ** 2;
 
 const smoothing_h_inv = 1.0 / smoothing_h;
@@ -62,7 +62,7 @@ const dW = (dx, dy): [number, number] => {
 
 const makeDamBreak = () => {
   const size = R * 2;
-  const border = 0.1;
+  const border = 0.05;
   let i = 0;
   let x = 0;
   let y = 0;
@@ -267,7 +267,7 @@ const computeVelocityGuess = ({dt}: {dt: number}) => {
 
     // hacky wall penalty force
     const wallSize = R;
-    const kWall = 1000;
+    const kWall = 2000;
     let fWallX = 0;
     let fWallY = 0;
     if (position[i][0] < wallSize) {
@@ -326,7 +326,7 @@ const advectParticles = ({dt}: {dt: number}) => {
 
 let tLast = Date.now();
 const simulate = () => {
-  const dt = 0.01;
+  const dt = 0.02;
   const realDt = (Date.now() - tLast) / 1000;
   tLast = Date.now();
 
