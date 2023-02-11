@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@tweakpane/core': ^1.1.4
   eslint: ^8.27.0
   eslint-plugin-react: ^7.31.10
   parcel: ^2.7.0
@@ -8,12 +9,15 @@ specifiers:
   process: ^0.11.10
   react: ^18.2.0
   react-dom: ^18.2.0
+  tweakpane: ^3.1.4
 
 dependencies:
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  tweakpane: 3.1.4
 
 devDependencies:
+  '@tweakpane/core': 1.1.4
   eslint: 8.33.0
   eslint-plugin-react: 7.32.2_eslint@8.33.0
   parcel: 2.8.3
@@ -933,6 +937,10 @@ packages:
   /@trysound/sax/0.2.0:
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
     engines: {node: '>=10.13.0'}
+    dev: true
+
+  /@tweakpane/core/1.1.4:
+    resolution: {integrity: sha512-Z0l5U7IYnLjSzK6PWohEaxqZDV99saa3dymXd5ymw9zrVuVvVzcvK/2TzgyN+suWOIH0DaMzOeLU935qBmUV+w==}
     dev: true
 
   /@types/parse-json/4.0.0:
@@ -2666,6 +2674,10 @@ packages:
   /tslib/2.5.0:
     resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
     dev: true
+
+  /tweakpane/3.1.4:
+    resolution: {integrity: sha512-YCEU6wn3uGMYlD63Lkh7Ahhiw1BzlKX4LOQKRGopHL8YEhOBbjiPVY95wXC1TwgoBpBhRGcfRwtbCRA8fkdO2A==}
+    dev: false
 
   /type-check/0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}

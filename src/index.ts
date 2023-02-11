@@ -5,6 +5,7 @@ import {State, allocateState} from './state';
 import {Params, makeDefaultParams} from './params';
 import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
+import {createUi} from './tweaks';
 
 let running = true;
 let step = false;
@@ -18,6 +19,7 @@ const reset = () => {
 
 reset();
 initPointer();
+createUi(params);
 
 const canvas = document.createElement('canvas');
 const resize = () => {
