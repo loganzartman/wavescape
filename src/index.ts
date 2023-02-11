@@ -179,7 +179,48 @@ addEventListener(
   false
 );
 
+const neighborTable = new Map<number, number[]>();
+const neighborCellSize = 1.0 * smoothing_h;
+
+const cellKey = (i: number, j: number) => (73856093 * i) ^ (19349663 * j);
+
+const posToCell = (x: number, y: number): [number, number] => [
+  Math.floor(x / neighborCellSize),
+  Math.floor(y / neighborCellSize),
+];
+
+const updateNeighbors = () => {
+  neighborTable.clear();
+  for (let i = 0; i < N; ++i) {
+    const [cellX, cellY] = posToCell(position[i][0], position[i][1]);
+    const key = cellKey(cellX, cellY);
+    if (!neighborTable.has(key)) {
+      neighborTable.set(key, []);
+    }
+    neighborTable.get(key)?.push(i);
+  }
+};
+
 const getNeighbors = function* (index: number) {
+  const [cx0, cy0] = posToCell(
+    position[index][0] - smoothing_h,
+    position[index][1] - smoothing_h
+  );
+  const [cx1, cy1] = posToCell(
+    position[index][0] + smoothing_h,
+    position[index][1] + smoothing_h
+  );
+  for (let cx = cx0; cx <= cx1; ++cx) {
+    for (let cy = cy0; cy <= cy1; ++cy) {
+      const neighbors = neighborTable.get(cellKey(cx, cy));
+      if (neighbors) {
+        yield* neighbors;
+      }
+    }
+  }
+};
+
+const getNeighborsBrute = function* (index: number) {
   for (let j = 0; j < N; ++j) {
     if (index === j) continue;
     yield j;
@@ -290,6 +331,7 @@ const simulate = () => {
   tLast = Date.now();
 
   updatePointer(realDt);
+  updateNeighbors();
 
   computeDensity();
   computeVelocityGuess({dt});
