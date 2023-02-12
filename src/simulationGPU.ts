@@ -96,6 +96,7 @@ export const advectParticlesGPU = (
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.writeFramebuffer);
+  gl.viewport(0, 0, gpuState.n, 1);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.position.swap();
