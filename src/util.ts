@@ -15,6 +15,7 @@ export const memoize = <F extends (...args: any[]) => any>(f: F): F => {
       !cached ||
       !cachedArgs.every((_, i) => Object.is(cachedArgs![i], args[i]))
     ) {
+      cached = true;
       cachedArgs = args;
       cachedResult = f(...args);
     }
