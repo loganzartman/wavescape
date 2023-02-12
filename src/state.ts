@@ -1,4 +1,4 @@
-import {createFramebuffer, createTexture2D} from './gl';
+import {createFramebuffer, createTexture2D, PingPongTexture} from './gl';
 import {nextPowerOf2} from './util';
 
 export type PrimaryState = {
@@ -10,10 +10,8 @@ export type PrimaryState = {
 
 export type PrimaryGPUState = {
   n: number;
-  position: WebGLTexture;
-  positionFb: WebGLFramebuffer;
-  velocity: WebGLTexture;
-  velocityFb: WebGLFramebuffer;
+  position: PingPongTexture;
+  velocity: PingPongTexture;
   mass: WebGLTexture;
 };
 
@@ -51,8 +49,12 @@ export const allocateGPUState = ({
 }): GPUState => {
   const base = {width: nextPowerOf2(n), height: 1};
 
-  const position = createTexture2D(gl, {...base, internalFormat: gl.RG32F});
-  const velocity = createTexture2D(gl, {...base, internalFormat: gl.RG32F});
+  const position = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.RG32F})
+  );
+  const velocity = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.RG32F})
+  );
   const mass = createTexture2D(gl, {...base, internalFormat: gl.R32F});
   const density = createTexture2D(gl, {...base, internalFormat: gl.R32F});
   const velocityGuess = createTexture2D(gl, {
@@ -61,15 +63,10 @@ export const allocateGPUState = ({
   });
   const fPressure = createTexture2D(gl, {...base, internalFormat: gl.RG32F});
 
-  const positionFb = createFramebuffer(gl, {colorAttachments: [position]});
-  const velocityFb = createFramebuffer(gl, {colorAttachments: [velocity]});
-
   return {
     n,
     position,
-    positionFb,
     velocity,
-    velocityFb,
     mass,
     density,
     velocityGuess,

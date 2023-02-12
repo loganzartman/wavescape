@@ -1,7 +1,7 @@
 import './reset.css';
 import './index.css';
 import {makeDamBreak} from './scene';
-import {State, allocateState} from './state';
+import {State, allocateState, GPUState, allocateGPUState} from './state';
 import {Params, makeDefaultParams} from './params';
 import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
@@ -11,7 +11,18 @@ import {enableFloatTexture} from './gl';
 let running = true;
 let step = false;
 
-const state: State = allocateState({n: 500});
+const glCanvas = document.createElement('canvas');
+const gl = glCanvas.getContext('webgl2');
+if (!gl) {
+  throw new Error('Failed to get WebGL2 context');
+}
+if (!enableFloatTexture(gl)) {
+  throw new Error('Device does not support rendering to float texture');
+}
+
+const n = 500;
+const state: State = allocateState({n});
+const gpuState: GPUState = allocateGPUState({gl, n});
 const params: Params = makeDefaultParams();
 
 const reset = () => {
@@ -21,15 +32,6 @@ const reset = () => {
 reset();
 initPointer();
 createUi(params);
-
-const glCanvas = document.createElement('canvas');
-const gl = glCanvas.getContext('webgl2');
-if (!gl) {
-  throw new Error('Failed to get WebGL2 context');
-}
-if (!enableFloatTexture(gl)) {
-  throw new Error('Device does not support rendering to float texture');
-}
 
 const canvas = document.createElement('canvas');
 const resize = () => {
@@ -62,7 +64,7 @@ const simulate = () => {
   tLast = Date.now();
 
   updatePointer(realDt);
-  updateSimulation(state, params, dt);
+  updateSimulation(state, gl, gpuState, params, dt);
 };
 
 const frame = () => {

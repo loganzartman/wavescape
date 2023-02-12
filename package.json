@@ -12,6 +12,8 @@
     "build": "yarn parcel build --public-url ./"
   },
   "devDependencies": {
+    "@parcel/core": "^2.8.3",
+    "@parcel/transformer-glsl": "^2.8.3",
     "@tweakpane/core": "^1.1.4",
     "eslint": "^8.27.0",
     "eslint-plugin-react": "^7.31.10",
