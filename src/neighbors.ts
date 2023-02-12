@@ -15,8 +15,8 @@ export const updateNeighbors = (state: State, params: Params) => {
   for (let i = 0; i < state.n; ++i) {
     const [cellX, cellY] = posToCell(
       params,
-      state.position[i][0],
-      state.position[i][1]
+      state.position[i * 2 + 0],
+      state.position[i * 2 + 1]
     );
     const key = cellKey(cellX, cellY);
     if (!neighborTable.has(key)) {
@@ -34,13 +34,13 @@ export const forEachNeighbor = (
 ) => {
   const [cx0, cy0] = posToCell(
     params,
-    state.position[index][0] - params.hSmoothing,
-    state.position[index][1] - params.hSmoothing
+    state.position[index * 2 + 0] - params.hSmoothing,
+    state.position[index * 2 + 1] - params.hSmoothing
   );
   const [cx1, cy1] = posToCell(
     params,
-    state.position[index][0] + params.hSmoothing,
-    state.position[index][1] + params.hSmoothing
+    state.position[index * 2 + 0] + params.hSmoothing,
+    state.position[index * 2 + 1] + params.hSmoothing
   );
   for (let cx = cx0; cx <= cx1; ++cx) {
     for (let cy = cy0; cy <= cy1; ++cy) {

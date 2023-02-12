@@ -12,8 +12,8 @@ export const makeDamBreak = (state: State, params: Params) => {
   clearState(state);
   while (i < state.n) {
     state.mass[i] = 1.0;
-    state.position[i][0] = border + x * size;
-    state.position[i][1] = border + y * size;
+    state.position[i * 2 + 0] = border + x * size;
+    state.position[i * 2 + 1] = border + y * size;
     ++i;
     ++y;
     if (y > h) {
