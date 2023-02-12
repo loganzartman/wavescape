@@ -1,4 +1,4 @@
-import {GPUState, State} from './state';
+import {clearState, GPUState, State} from './state';
 import {Params} from './params';
 import {W, dW} from './kernel';
 import {updateNeighbors, forEachNeighbor} from './neighbors';
@@ -8,6 +8,7 @@ import {
   advectParticlesGPU,
   copyStateFromGPU,
   copyStateToGPU,
+  updateVelocityGPU,
 } from './simulationGPU';
 
 export const updateDensity = (state: State, params: Params) => {
@@ -136,9 +137,12 @@ export const updateSimulation = (
   updateDensity(state, params);
   updateVelocityGuess(state, params, dt);
   updatePressure(state, params);
-  updateVelocity(state, params, dt);
 
   copyStateToGPU(gl, state, gpuState);
+  updateVelocityGPU(gl, gpuState, params, dt);
   advectParticlesGPU(gl, gpuState, params, dt);
   copyStateFromGPU(gl, state, gpuState);
+
+  // updateVelocity(state, params, dt);
+  // advectParticles(state, params, dt);
 };

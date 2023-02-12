@@ -12,7 +12,7 @@ export type PrimaryGPUState = {
   n: number;
   position: PingPongTexture;
   velocity: PingPongTexture;
-  mass: WebGLTexture;
+  mass: PingPongTexture;
 };
 
 export type DerivedState = {
@@ -22,9 +22,9 @@ export type DerivedState = {
 };
 
 export type DerivedGPUState = {
-  density: WebGLTexture;
-  velocityGuess: WebGLTexture;
-  fPressure: WebGLTexture;
+  density: PingPongTexture;
+  velocityGuess: PingPongTexture;
+  fPressure: PingPongTexture;
 };
 
 export type State = PrimaryState & DerivedState;
@@ -55,13 +55,21 @@ export const allocateGPUState = ({
   const velocity = new PingPongTexture(gl, () =>
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );
-  const mass = createTexture2D(gl, {...base, internalFormat: gl.R32F});
-  const density = createTexture2D(gl, {...base, internalFormat: gl.R32F});
-  const velocityGuess = createTexture2D(gl, {
-    ...base,
-    internalFormat: gl.RG32F,
-  });
-  const fPressure = createTexture2D(gl, {...base, internalFormat: gl.RG32F});
+  const mass = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.R32F})
+  );
+  const density = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.R32F})
+  );
+  const velocityGuess = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {
+      ...base,
+      internalFormat: gl.RG32F,
+    })
+  );
+  const fPressure = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.RG32F})
+  );
 
   return {
     n,
