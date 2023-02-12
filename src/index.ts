@@ -6,6 +6,7 @@ import {Params, makeDefaultParams} from './params';
 import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
 import {createUi} from './tweaks';
+import {enableFloatTexture} from './gl';
 
 let running = true;
 let step = false;
@@ -20,6 +21,15 @@ const reset = () => {
 reset();
 initPointer();
 createUi(params);
+
+const glCanvas = document.createElement('canvas');
+const gl = glCanvas.getContext('webgl2');
+if (!gl) {
+  throw new Error('Failed to get WebGL2 context');
+}
+if (!enableFloatTexture(gl)) {
+  throw new Error('Device does not support rendering to float texture');
+}
 
 const canvas = document.createElement('canvas');
 const resize = () => {
