@@ -147,8 +147,8 @@ export const testSort = (gl: WebGL2RenderingContext) => {
   const makeData = () =>
     new Int32Array(
       shuffle(Array.from({length: N}).map((_, i) => i)).flatMap((i) => [
+        Math.floor(i / 10),
         i,
-        i * 10,
       ])
     );
   let data = makeData();

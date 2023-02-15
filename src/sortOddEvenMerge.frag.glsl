@@ -48,8 +48,8 @@ void main() {
       // self is on the left side of the pair; pick <
       result = vi.x < vj.x ? vi : vj;
     } else {
-      // self is on the right side of the pair; pick >=
-      result = vi.x >= vj.x ? vi : vj;
+      // self is on the right side of the pair; pick >
+      result = vi.x > vj.x ? vi : vj;
     }
   }
 
