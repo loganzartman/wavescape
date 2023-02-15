@@ -1,5 +1,5 @@
-import {createProgram, createShader, createVAO} from './gl';
-import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
+import {createProgram, createShader} from './gl';
+import {getCopyVertexVert, getEmptyVAO, getQuadVAO} from './gpuUtil';
 import {sortOddEvenMerge} from './sortGPU';
 import {GPUState} from './state';
 import {groupNComponents, memoize} from './util';
@@ -7,6 +7,8 @@ import {Params} from './params';
 import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
 import updateStartIndexVert from './updateStartIndex.vert.glsl';
 import updateStartIndexFrag from './updateStartIndex.frag.glsl';
+import updateCountVert from './updateCount.vert.glsl';
+import updateCountFrag from './updateCount.frag.glsl';
 
 const DEBUG = true;
 
@@ -42,16 +44,22 @@ export const updateNeighborsGPU = (
   if (DEBUG) {
     console.log('updated start indices');
     const tmp = new Float32Array(gpuState.n * 2);
-    gl.bindFramebuffer(
-      gl.FRAMEBUFFER,
-      gpuState.neighborsTable.read.framebuffer
-    );
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
     gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
   }
 
-  updateCount(gl, gpuState);
+  updateCount(gl, gpuState, params);
+
+  if (DEBUG) {
+    console.log('updated counts');
+    const tmp = new Float32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(groupNComponents(Array.from(tmp), 2));
+  }
 };
 
 const getUpdateKeyIndexPairsFrag = memoize((gl: WebGL2RenderingContext) =>
@@ -115,10 +123,6 @@ const getUpdateStartIndexProgram = memoize((gl: WebGL2RenderingContext) =>
   })
 );
 
-const getEmptyVAO = memoize((gl: WebGL2RenderingContext) =>
-  createVAO(gl, {attribs: []})
-);
-
 const updateStartIndex = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
@@ -150,7 +154,7 @@ const updateStartIndex = (
     params.hSmoothing * 0.5
   );
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.write.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
   gl.clearColor(gpuState.n, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.enable(gl.BLEND);
@@ -159,9 +163,62 @@ const updateStartIndex = (
   gl.drawArrays(gl.POINTS, 0, gpuState.n);
   gl.disable(gl.BLEND);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.neighborsTable.swap();
 
   gl.useProgram(null);
 };
 
-const updateCount = (gl: WebGL2RenderingContext, gpuState: GPUState) => {};
+const getUpdateCountVert = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateCountVert, type: gl.VERTEX_SHADER})
+);
+
+const getUpdateCountFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateCountFrag, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdateCountProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getUpdateCountVert(gl), getUpdateCountFrag(gl)],
+  })
+);
+
+const updateCount = (
+  gl: WebGL2RenderingContext,
+  gpuState: GPUState,
+  params: Params
+) => {
+  const program = getUpdateCountProgram(gl);
+  gl.useProgram(program);
+  // each particle will be represented as a single point, but their data is backed by textures.
+  // so, we don't actually need any vertex attributes.
+  gl.bindVertexArray(getEmptyVAO(gl));
+  gl.viewport(0, 0, gpuState.n, 1);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'positionResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'tableResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2f(
+    gl.getUniformLocation(program, 'cellSize'),
+    params.hSmoothing * 0.5,
+    params.hSmoothing * 0.5
+  );
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
+  gl.enable(gl.BLEND);
+  gl.blendEquation(gl.FUNC_ADD);
+  gl.blendFunc(gl.ONE, gl.ONE);
+  gl.drawArrays(gl.POINTS, 0, gpuState.n);
+  gl.disable(gl.BLEND);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  gl.useProgram(null);
+};

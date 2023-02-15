@@ -1,4 +1,4 @@
-import {createFramebuffer, createTexture2D, PingPongTexture} from './gl';
+import {createTexture2D, PingPongTexture, RenderTexture} from './gl';
 import {nextPowerOf2} from './util';
 
 export type PrimaryState = {
@@ -29,7 +29,7 @@ export type DerivedGPUState = {
 
 export type NeighborGPUState = {
   keyIndexPairs: PingPongTexture;
-  neighborsTable: PingPongTexture;
+  neighborsTable: RenderTexture;
 };
 
 export type State = PrimaryState & DerivedState;
@@ -79,7 +79,7 @@ export const allocateGPUState = ({
   const keyIndexPairs = new PingPongTexture(gl, () =>
     createTexture2D(gl, {...base, internalFormat: gl.RG32I})
   );
-  const neighborsTable = new PingPongTexture(gl, () =>
+  const neighborsTable = new RenderTexture(gl, () =>
     // this has to be a float texture to support blending
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );

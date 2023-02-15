@@ -13,6 +13,10 @@ export const getQuadVAO = memoize((gl: WebGL2RenderingContext) =>
   createVAO(gl, {attribs: [{buffer: getQuadBuffer(gl), size: 2}]})
 );
 
+export const getEmptyVAO = memoize((gl: WebGL2RenderingContext) =>
+  createVAO(gl, {attribs: []})
+);
+
 export const getCopyVertexVert = memoize((gl: WebGL2RenderingContext) =>
   createShader(gl, {source: copyVertexVert, type: gl.VERTEX_SHADER})
 );
