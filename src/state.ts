@@ -28,7 +28,7 @@ export type DerivedGPUState = {
 };
 
 export type NeighborGPUState = {
-  keyIndexPairs: PingPongTexture;
+  keyParticlePairs: PingPongTexture;
   neighborsTable: RenderTexture;
 };
 
@@ -76,7 +76,7 @@ export const allocateGPUState = ({
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );
 
-  const keyIndexPairs = new PingPongTexture(gl, () =>
+  const keyParticlePairs = new PingPongTexture(gl, () =>
     createTexture2D(gl, {...base, internalFormat: gl.RG32I})
   );
   const neighborsTable = new RenderTexture(gl, () =>
@@ -92,7 +92,7 @@ export const allocateGPUState = ({
     density,
     velocityGuess,
     fPressure,
-    keyIndexPairs,
+    keyParticlePairs,
     neighborsTable,
   };
 };
