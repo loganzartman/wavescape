@@ -9,7 +9,7 @@ import {createUi} from './tweaks';
 import {enableFloatTexture} from './gl';
 import {testSort} from './sortGPU';
 
-let running = false;
+let running = true;
 let step = false;
 
 const glCanvas = document.createElement('canvas');
