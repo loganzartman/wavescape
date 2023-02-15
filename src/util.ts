@@ -41,3 +41,16 @@ export const time = (fn: CallableFunction): number => {
   fn();
   return performance.now() - t0;
 };
+
+export const groupNComponents = <T>(a: T[], n: number): T[][] => {
+  const result: T[][] = [];
+  let i = 0;
+  while (i < a.length) {
+    let tup: T[] = [];
+    for (let j = 0; j < n && i < a.length; ++j, ++i) {
+      tup.push(a[i]);
+    }
+    result.push(tup);
+  }
+  return result;
+};

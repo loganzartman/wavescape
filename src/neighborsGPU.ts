@@ -1,10 +1,12 @@
-import {createProgram, createShader} from './gl';
+import {createProgram, createShader, createVAO} from './gl';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import {sortOddEvenMerge} from './sortGPU';
 import {GPUState} from './state';
-import {memoize} from './util';
-import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
+import {groupNComponents, memoize} from './util';
 import {Params} from './params';
+import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
+import updateStartIndexVert from './updateStartIndex.vert.glsl';
+import updateStartIndexFrag from './updateStartIndex.frag.glsl';
 
 export const updateNeighborsGPU = (
   gl: WebGL2RenderingContext,
@@ -13,7 +15,7 @@ export const updateNeighborsGPU = (
 ) => {
   updateKeyIndexPairs(gl, gpuState, params);
   sortOddEvenMerge(gl, gpuState.keyIndexPairs, gpuState.n, 1);
-  updateStartIndex(gl, gpuState);
+  updateStartIndex(gl, gpuState, params);
   updateCount(gl, gpuState);
 };
 
@@ -63,13 +65,96 @@ const updateKeyIndexPairs = (
   gl.bindVertexArray(null);
   gl.useProgram(null);
 
+  console.log('updated key/index pairs');
   const tmp = new Int32Array(gpuState.n * 2);
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
   gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   console.log(Array.from(tmp));
+  console.log(groupNComponents(Array.from(tmp), 2));
 };
 
-const updateStartIndex = (gl: WebGL2RenderingContext, gpuState: GPUState) => {};
+const getUpdateStartIndexVert = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateStartIndexVert, type: gl.VERTEX_SHADER})
+);
+
+const getUpdateStartIndexFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateStartIndexFrag, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdateStartIndexProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getUpdateStartIndexVert(gl), getUpdateStartIndexFrag(gl)],
+  })
+);
+
+const getEmptyVAO = memoize((gl: WebGL2RenderingContext) =>
+  createVAO(gl, {attribs: []})
+);
+
+const updateStartIndex = (
+  gl: WebGL2RenderingContext,
+  gpuState: GPUState,
+  params: Params
+) => {
+  console.log('key/index pairs are sorted');
+  {
+    const tmp = new Int32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(Array.from(tmp));
+    console.log(groupNComponents(Array.from(tmp), 2));
+  }
+
+  const program = getUpdateStartIndexProgram(gl);
+  gl.useProgram(program);
+  // each particle will be represented as a single point, but their data is backed by textures.
+  // so, we don't actually need any vertex attributes.
+  gl.bindVertexArray(getEmptyVAO(gl));
+  gl.viewport(0, 0, gpuState.n, 1);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.readTexture);
+  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'positionResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'tableResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2f(
+    gl.getUniformLocation(program, 'cellSize'),
+    params.hSmoothing * 0.5,
+    params.hSmoothing * 0.5
+  );
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.writeFramebuffer);
+  gl.clearColor(gpuState.n, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.enable(gl.BLEND);
+  gl.blendEquation(gl.MIN);
+  gl.blendFunc(gl.ONE, gl.ONE);
+  gl.drawArrays(gl.POINTS, 0, gpuState.n);
+  gl.disable(gl.BLEND);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gpuState.neighborsTable.swap();
+
+  gl.useProgram(null);
+
+  console.log('updated start indices');
+  {
+    const tmp = new Float32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.readFramebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(Array.from(tmp));
+    console.log(groupNComponents(Array.from(tmp), 2));
+  }
+};
 
 const updateCount = (gl: WebGL2RenderingContext, gpuState: GPUState) => {};

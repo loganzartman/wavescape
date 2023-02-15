@@ -80,7 +80,8 @@ export const allocateGPUState = ({
     createTexture2D(gl, {...base, internalFormat: gl.RG32I})
   );
   const neighborsTable = new PingPongTexture(gl, () =>
-    createTexture2D(gl, {...base, internalFormat: gl.RG32I})
+    // this has to be a float texture to support blending
+    createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );
 
   return {
