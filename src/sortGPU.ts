@@ -4,7 +4,7 @@ import {
   createTexture2D,
   PingPongTexture,
 } from './gl';
-import {memoize, shuffle, time} from './util';
+import {memoize, nextPowerOf2, shuffle, time} from './util';
 import sortEvenOddFrag from './sortEvenOdd.frag.glsl';
 import sortOddEvenMergeFrag from './sortOddEvenMerge.frag.glsl';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
@@ -114,7 +114,7 @@ export const sortOddEvenMerge = (
   const n = width * height;
 
   // "width" of a pair (distance between compared elements) increases as powers of 2
-  for (let stageWidth = 1; stageWidth < n; stageWidth *= 2) {
+  for (let stageWidth = 1; stageWidth < nextPowerOf2(n); stageWidth *= 2) {
     // for each pass in a stage, width is halved (merge steps)
     for (let compareWidth = stageWidth; compareWidth >= 1; compareWidth /= 2) {
       gl.bindTexture(gl.TEXTURE_2D, texture.readTexture);
@@ -135,18 +135,18 @@ export const sortOddEvenMerge = (
 };
 
 export const testSort = (gl: WebGL2RenderingContext) => {
-  const N = 128;
+  const N = 1022;
   const tex = new PingPongTexture(gl, () =>
     createTexture2D(gl, {
       internalFormat: gl.RG32I,
       width: N,
-      height: N,
+      height: 1,
     })
   );
 
   const makeData = () =>
     new Int32Array(
-      shuffle(Array.from({length: N * N}).map((_, i) => i)).flatMap((i) => [
+      shuffle(Array.from({length: N}).map((_, i) => i)).flatMap((i) => [
         i,
         i * 10,
       ])
@@ -161,12 +161,12 @@ export const testSort = (gl: WebGL2RenderingContext) => {
 
   for (let i = 0; i < iters + warmup; ++i) {
     data = makeData();
-    copyToTextureInt(gl, data, tex.readTexture, N, N, gl.RG_INTEGER);
+    copyToTextureInt(gl, data, tex.readTexture, N, 1, gl.RG_INTEGER);
     if (i >= warmup) {
       totalCPU += time(() => data.sort());
-      totalGPU += time(() => sortOddEvenMerge(gl, tex, N, N));
+      totalGPU += time(() => sortOddEvenMerge(gl, tex, N, 1));
     }
-    copyFromTextureInt(gl, tex.readFramebuffer, data, N, N, gl.RG_INTEGER);
+    copyFromTextureInt(gl, tex.readFramebuffer, data, N, 1, gl.RG_INTEGER);
   }
 
   console.log('after', data);
