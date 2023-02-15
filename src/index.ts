@@ -23,7 +23,7 @@ if (!enableFloatTexture(gl)) {
 
 // testSort(gl);
 
-const n = 10;
+const n = 500;
 const state: State = allocateState({n});
 const gpuState: GPUState = allocateGPUState({gl, n});
 const params: Params = makeDefaultParams();
