@@ -8,14 +8,46 @@ import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
 import updateStartIndexVert from './updateStartIndex.vert.glsl';
 import updateStartIndexFrag from './updateStartIndex.frag.glsl';
 
+const DEBUG = true;
+
 export const updateNeighborsGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
   params: Params
 ) => {
   updateKeyIndexPairs(gl, gpuState, params);
+
+  if (DEBUG) {
+    console.log('updated key/index pairs');
+    const tmp = new Int32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(groupNComponents(Array.from(tmp), 2));
+  }
+
   sortOddEvenMerge(gl, gpuState.keyIndexPairs, gpuState.n, 1);
+
+  if (DEBUG) {
+    console.log('sorted key/index pairs');
+    const tmp = new Int32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(groupNComponents(Array.from(tmp), 2));
+  }
+
   updateStartIndex(gl, gpuState, params);
+
+  if (DEBUG) {
+    console.log('updated start indices');
+    const tmp = new Float32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.readFramebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(groupNComponents(Array.from(tmp), 2));
+  }
+
   updateCount(gl, gpuState);
 };
 
@@ -64,14 +96,6 @@ const updateKeyIndexPairs = (
   gl.bindTexture(gl.TEXTURE_2D, null);
   gl.bindVertexArray(null);
   gl.useProgram(null);
-
-  console.log('updated key/index pairs');
-  const tmp = new Int32Array(gpuState.n * 2);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
-  gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  console.log(Array.from(tmp));
-  console.log(groupNComponents(Array.from(tmp), 2));
 };
 
 const getUpdateStartIndexVert = memoize((gl: WebGL2RenderingContext) =>
@@ -97,16 +121,6 @@ const updateStartIndex = (
   gpuState: GPUState,
   params: Params
 ) => {
-  console.log('key/index pairs are sorted');
-  {
-    const tmp = new Int32Array(gpuState.n * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    console.log(Array.from(tmp));
-    console.log(groupNComponents(Array.from(tmp), 2));
-  }
-
   const program = getUpdateStartIndexProgram(gl);
   gl.useProgram(program);
   // each particle will be represented as a single point, but their data is backed by textures.
@@ -145,16 +159,6 @@ const updateStartIndex = (
   gpuState.neighborsTable.swap();
 
   gl.useProgram(null);
-
-  console.log('updated start indices');
-  {
-    const tmp = new Float32Array(gpuState.n * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.readFramebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    console.log(Array.from(tmp));
-    console.log(groupNComponents(Array.from(tmp), 2));
-  }
 };
 
 const updateCount = (gl: WebGL2RenderingContext, gpuState: GPUState) => {};
