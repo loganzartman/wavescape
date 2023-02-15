@@ -1,0 +1,186 @@
+import {
+  createBuffer,
+  createProgram,
+  createShader,
+  createTexture2D,
+  createVAO,
+  PingPongTexture,
+} from './gl';
+import {memoize, shuffle, time} from './util';
+import copyVertexVert from './copyVertex.vert.glsl';
+import sortEvenOddFrag from './sortEvenOdd.frag.glsl';
+import sortOddEvenMergeFrag from './sortOddEvenMerge.frag.glsl';
+
+const getQuadBuffer = memoize((gl: WebGL2RenderingContext) =>
+  createBuffer(gl, {
+    data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]),
+    usage: gl.STATIC_DRAW,
+  })
+);
+const getQuadVAO = memoize((gl: WebGL2RenderingContext) =>
+  createVAO(gl, {attribs: [{buffer: getQuadBuffer(gl), size: 2}]})
+);
+const getCopyVertexVert = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: copyVertexVert, type: gl.VERTEX_SHADER})
+);
+
+const getSortEvenOddFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: sortEvenOddFrag, type: gl.FRAGMENT_SHADER})
+);
+const getSortEvenOddProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {shaders: [getCopyVertexVert(gl), getSortEvenOddFrag(gl)]})
+);
+
+const copyToTextureInt = (
+  gl: WebGL2RenderingContext,
+  src: Int32Array,
+  dst: WebGLTexture,
+  width: number,
+  height: number,
+  format: number
+) => {
+  gl.bindTexture(gl.TEXTURE_2D, dst);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, format, gl.INT, src);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
+const copyFromTextureInt = (
+  gl: WebGL2RenderingContext,
+  src: WebGLTexture,
+  dst: Int32Array,
+  width: number,
+  height: number,
+  format: number
+) => {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, src);
+  gl.readPixels(0, 0, width, height, format, gl.INT, dst);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+};
+
+export const sortEvenOdd = (
+  gl: WebGL2RenderingContext,
+  texture: PingPongTexture,
+  width: number,
+  height: number
+) => {
+  const program = getSortEvenOddProgram(gl);
+
+  gl.useProgram(program);
+  gl.bindVertexArray(getQuadVAO(gl));
+
+  gl.viewport(0, 0, width, height);
+  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), width, height);
+  const inputSamplerLoc = gl.getUniformLocation(program, 'inputSampler');
+  const oddStepLoc = gl.getUniformLocation(program, 'oddStep');
+
+  for (let i = 0; i < width * height; ++i) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture.readTexture);
+    gl.uniform1i(inputSamplerLoc, 0);
+    gl.uniform1i(oddStepLoc, i % 2);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.writeFramebuffer);
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    texture.swap();
+  }
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.bindVertexArray(null);
+  gl.useProgram(null);
+};
+
+const getSortOddEvenMergeFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: sortOddEvenMergeFrag, type: gl.FRAGMENT_SHADER})
+);
+const getSortOddEvenMergeProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getCopyVertexVert(gl), getSortOddEvenMergeFrag(gl)],
+  })
+);
+
+/** batcher's odd-even merge sort
+ * some references:
+ * https://developer.nvidia.com/gpugems/gpugems2/part-vi-simulation-and-numerical-algorithms/chapter-46-improved-gpu-sorting
+ * https://en.wikipedia.org/wiki/Batcher_odd%E2%80%93even_mergesort
+ * https://bekbolatov.github.io/sorting/
+ * the last is helpful for visualizing the pattern of comparison pairs
+ */
+export const sortOddEvenMerge = (
+  gl: WebGL2RenderingContext,
+  texture: PingPongTexture,
+  width: number,
+  height: number
+) => {
+  const program = getSortOddEvenMergeProgram(gl);
+
+  gl.useProgram(program);
+  gl.bindVertexArray(getQuadVAO(gl));
+
+  gl.viewport(0, 0, width, height);
+  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), width, height);
+  const inputSamplerLoc = gl.getUniformLocation(program, 'inputSampler');
+  const stageWidthLoc = gl.getUniformLocation(program, 'stageWidth');
+  const compareWidthLoc = gl.getUniformLocation(program, 'compareWidth');
+  gl.activeTexture(gl.TEXTURE0);
+
+  const n = width * height;
+
+  // "width" of a pair (distance between compared elements) increases as powers of 2
+  for (let stageWidth = 1; stageWidth < n; stageWidth *= 2) {
+    // for each pass in a stage, width is halved (merge steps)
+    for (let compareWidth = stageWidth; compareWidth >= 1; compareWidth /= 2) {
+      gl.bindTexture(gl.TEXTURE_2D, texture.readTexture);
+      gl.uniform1i(inputSamplerLoc, 0);
+      gl.uniform1i(stageWidthLoc, stageWidth);
+      gl.uniform1i(compareWidthLoc, compareWidth);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, texture.writeFramebuffer);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+      texture.swap();
+    }
+  }
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.bindVertexArray(null);
+  gl.useProgram(null);
+};
+
+export const testSort = (gl: WebGL2RenderingContext) => {
+  const N = 256;
+  const tex = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {
+      internalFormat: gl.R32I,
+      width: N,
+      height: N,
+    })
+  );
+
+  let data = new Int32Array(
+    shuffle(Array.from({length: N * N}).map((_, i) => i))
+  );
+  console.log('before', data);
+
+  const iters = 50;
+  const warmup = 10;
+  let totalCPU = 0;
+  let totalGPU = 0;
+
+  for (let i = 0; i < iters + warmup; ++i) {
+    shuffle(data);
+    copyToTextureInt(gl, data, tex.readTexture, N, N, gl.RED_INTEGER);
+    if (i >= warmup) {
+      totalCPU += time(() => data.sort());
+      totalGPU += time(() => sortOddEvenMerge(gl, tex, N, N));
+    }
+    copyFromTextureInt(gl, tex.readFramebuffer, data, N, N, gl.RED_INTEGER);
+  }
+
+  console.log('after', data);
+
+  console.log('average millisec to sort: ', totalCPU / iters);
+  console.log('average millisec to sort GPU: ', totalGPU / iters);
+};

@@ -6,7 +6,7 @@ import advectParticlesFrag from './advectParticles.frag.glsl';
 import updateVelocityFrag from './updateVelocity.frag.glsl';
 import {Params} from './params';
 
-const copyToTexture = (
+export const copyToTexture = (
   gl: WebGL2RenderingContext,
   src: Float32Array,
   dst: WebGLTexture,
@@ -61,7 +61,7 @@ export const copyStateToGPU = (
   );
 };
 
-const copyFromTexture = (
+export const copyFromTexture = (
   gl: WebGL2RenderingContext,
   src: WebGLTexture,
   dst: Float32Array,

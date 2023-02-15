@@ -7,6 +7,7 @@ import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
 import {createUi} from './tweaks';
 import {enableFloatTexture} from './gl';
+import {testSort} from './sortGPU';
 
 let running = true;
 let step = false;
@@ -19,6 +20,8 @@ if (!gl) {
 if (!enableFloatTexture(gl)) {
   throw new Error('Device does not support rendering to float texture');
 }
+
+testSort(gl);
 
 const n = 500;
 const state: State = allocateState({n});

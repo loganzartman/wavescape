@@ -23,3 +23,21 @@ export const memoize = <F extends (...args: any[]) => any>(f: F): F => {
   };
   return memoized;
 };
+
+export const shuffle = <T extends any[] | (ArrayBufferView & {length: number})>(
+  a: T
+): T => {
+  for (let i = a.length - 1; i >= 0; --i) {
+    const swapIndex = Math.floor(Math.random() * i);
+    const temp = a[i];
+    a[i] = a[swapIndex];
+    a[swapIndex] = temp;
+  }
+  return a;
+};
+
+export const time = (fn: CallableFunction): number => {
+  const t0 = performance.now();
+  fn();
+  return performance.now() - t0;
+};
