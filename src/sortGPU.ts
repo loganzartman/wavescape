@@ -1,28 +1,13 @@
 import {
-  createBuffer,
   createProgram,
   createShader,
   createTexture2D,
-  createVAO,
   PingPongTexture,
 } from './gl';
 import {memoize, shuffle, time} from './util';
-import copyVertexVert from './copyVertex.vert.glsl';
 import sortEvenOddFrag from './sortEvenOdd.frag.glsl';
 import sortOddEvenMergeFrag from './sortOddEvenMerge.frag.glsl';
-
-const getQuadBuffer = memoize((gl: WebGL2RenderingContext) =>
-  createBuffer(gl, {
-    data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]),
-    usage: gl.STATIC_DRAW,
-  })
-);
-const getQuadVAO = memoize((gl: WebGL2RenderingContext) =>
-  createVAO(gl, {attribs: [{buffer: getQuadBuffer(gl), size: 2}]})
-);
-const getCopyVertexVert = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: copyVertexVert, type: gl.VERTEX_SHADER})
-);
+import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 
 const getSortEvenOddFrag = memoize((gl: WebGL2RenderingContext) =>
   createShader(gl, {source: sortEvenOddFrag, type: gl.FRAGMENT_SHADER})

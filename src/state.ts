@@ -27,8 +27,13 @@ export type DerivedGPUState = {
   fPressure: PingPongTexture;
 };
 
+export type NeighborGPUState = {
+  keyIndexPairs: PingPongTexture;
+  neighborsTable: PingPongTexture;
+};
+
 export type State = PrimaryState & DerivedState;
-export type GPUState = PrimaryGPUState & DerivedGPUState;
+export type GPUState = PrimaryGPUState & DerivedGPUState & NeighborGPUState;
 
 export const allocateState = ({n}: {n: number}): State => ({
   n,
@@ -71,6 +76,13 @@ export const allocateGPUState = ({
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );
 
+  const keyIndexPairs = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.RG32I})
+  );
+  const neighborsTable = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.RG32I})
+  );
+
   return {
     n,
     position,
@@ -79,6 +91,8 @@ export const allocateGPUState = ({
     density,
     velocityGuess,
     fPressure,
+    keyIndexPairs,
+    neighborsTable,
   };
 };
 

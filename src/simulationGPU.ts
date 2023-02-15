@@ -1,10 +1,10 @@
-import {createBuffer, createProgram, createShader, createVAO} from './gl';
+import {createProgram, createShader} from './gl';
 import {GPUState, State} from './state';
 import {memoize} from './util';
-import copyVertexVert from './copyVertex.vert.glsl';
 import advectParticlesFrag from './advectParticles.frag.glsl';
 import updateVelocityFrag from './updateVelocity.frag.glsl';
 import {Params} from './params';
+import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 
 export const copyToTexture = (
   gl: WebGL2RenderingContext,
@@ -122,22 +122,10 @@ export const copyStateFromGPU = (
   );
 };
 
-const getQuadBuffer = memoize((gl: WebGL2RenderingContext) =>
-  createBuffer(gl, {
-    data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]),
-    usage: gl.STATIC_DRAW,
-  })
-);
-const getQuadVAO = memoize((gl: WebGL2RenderingContext) =>
-  createVAO(gl, {attribs: [{buffer: getQuadBuffer(gl), size: 2}]})
-);
-const getCopyVertexVert = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: copyVertexVert, type: gl.VERTEX_SHADER})
-);
-
 const getAdvectParticlesFrag = memoize((gl: WebGL2RenderingContext) =>
   createShader(gl, {source: advectParticlesFrag, type: gl.FRAGMENT_SHADER})
 );
+
 const getAdvectParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
     shaders: [getCopyVertexVert(gl), getAdvectParticlesFrag(gl)],

@@ -10,6 +10,7 @@ import {
   copyStateToGPU,
   updateVelocityGPU,
 } from './simulationGPU';
+import {updateNeighborsGPU} from './neighborsGPU';
 
 export const updateDensity = (state: State, params: Params) => {
   for (let i = 0; i < state.n; ++i) {
@@ -133,6 +134,8 @@ export const updateSimulation = (
   dt: number
 ) => {
   updateNeighbors(state, params);
+  copyStateToGPU(gl, state, gpuState);
+  updateNeighborsGPU(gl, gpuState, params);
 
   updateDensity(state, params);
   updateVelocityGuess(state, params, dt);
