@@ -165,41 +165,50 @@ export const createVAO = (
   return vao;
 };
 
-export class PingPongTexture {
+export class RenderTexture {
   gl: WebGL2RenderingContext;
-  readTexture: WebGLTexture;
-  writeTexture: WebGLTexture;
-  readFramebuffer: WebGLFramebuffer;
-  writeFramebuffer: WebGLFramebuffer;
+  texture: WebGLTexture;
+  framebuffer: WebGLFramebuffer;
 
   constructor(gl: WebGL2RenderingContext, textureFactory: () => WebGLTexture) {
     this.gl = gl;
-    this.readTexture = textureFactory();
-    this.writeTexture = textureFactory();
-    this.readFramebuffer = createFramebuffer(gl, {
-      colorAttachments: [this.readTexture],
-    });
-    this.writeFramebuffer = createFramebuffer(gl, {
-      colorAttachments: [this.writeTexture],
+    this.texture = textureFactory();
+    this.framebuffer = createFramebuffer(gl, {
+      colorAttachments: [this.texture],
     });
   }
 
   delete() {
-    this.gl.deleteTexture(this.readTexture);
-    this.gl.deleteTexture(this.writeTexture);
-    this.gl.deleteFramebuffer(this.readFramebuffer);
-    this.gl.deleteFramebuffer(this.writeFramebuffer);
+    this.gl.deleteTexture(this.texture);
+    this.gl.deleteFramebuffer(this.framebuffer);
+  }
+}
+
+export class PingPongTexture {
+  gl: WebGL2RenderingContext;
+  read: RenderTexture;
+  write: RenderTexture;
+
+  constructor(gl: WebGL2RenderingContext, textureFactory: () => WebGLTexture) {
+    this.gl = gl;
+    this.read = new RenderTexture(gl, textureFactory);
+    this.write = new RenderTexture(gl, textureFactory);
+  }
+
+  delete() {
+    this.read.delete();
+    this.write.delete();
   }
 
   swap() {
-    const temp = this.readTexture;
-    this.readTexture = this.writeTexture;
-    this.writeTexture = temp;
-    setFramebufferAttachments(this.gl, this.readFramebuffer, {
-      colorAttachments: [this.readTexture],
+    const temp = this.read.texture;
+    this.read.texture = this.write.texture;
+    this.write.texture = temp;
+    setFramebufferAttachments(this.gl, this.read.framebuffer, {
+      colorAttachments: [this.read.texture],
     });
-    setFramebufferAttachments(this.gl, this.writeFramebuffer, {
-      colorAttachments: [this.writeTexture],
+    setFramebufferAttachments(this.gl, this.write.framebuffer, {
+      colorAttachments: [this.write.texture],
     });
   }
 }

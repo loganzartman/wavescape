@@ -26,36 +26,36 @@ export const copyStateToGPU = (
   copyToTexture(
     gl,
     state.position,
-    gpuState.position.readTexture,
+    gpuState.position.read.texture,
     state.n,
     gl.RG
   );
   copyToTexture(
     gl,
     state.velocity,
-    gpuState.velocity.readTexture,
+    gpuState.velocity.read.texture,
     state.n,
     gl.RG
   );
-  copyToTexture(gl, state.mass, gpuState.mass.readTexture, state.n, gl.RED);
+  copyToTexture(gl, state.mass, gpuState.mass.read.texture, state.n, gl.RED);
   copyToTexture(
     gl,
     state.density,
-    gpuState.density.readTexture,
+    gpuState.density.read.texture,
     state.n,
     gl.RED
   );
   copyToTexture(
     gl,
     state.velocityGuess,
-    gpuState.velocityGuess.readTexture,
+    gpuState.velocityGuess.read.texture,
     state.n,
     gl.RG
   );
   copyToTexture(
     gl,
     state.fPressure,
-    gpuState.fPressure.readTexture,
+    gpuState.fPressure.read.texture,
     state.n,
     gl.RG
   );
@@ -80,42 +80,42 @@ export const copyStateFromGPU = (
 ) => {
   copyFromTexture(
     gl,
-    gpuState.position.readFramebuffer,
+    gpuState.position.read.framebuffer,
     state.position,
     state.n,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.velocity.readFramebuffer,
+    gpuState.velocity.read.framebuffer,
     state.velocity,
     state.n,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.mass.readFramebuffer,
+    gpuState.mass.read.framebuffer,
     state.mass,
     state.n,
     gl.RED
   );
   copyFromTexture(
     gl,
-    gpuState.density.readFramebuffer,
+    gpuState.density.read.framebuffer,
     state.density,
     state.n,
     gl.RED
   );
   copyFromTexture(
     gl,
-    gpuState.velocityGuess.readFramebuffer,
+    gpuState.velocityGuess.read.framebuffer,
     state.velocityGuess,
     state.n,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.fPressure.readFramebuffer,
+    gpuState.fPressure.read.framebuffer,
     state.fPressure,
     state.n,
     gl.RG
@@ -145,14 +145,14 @@ export const advectParticlesGPU = (
   gl.bindVertexArray(quadVAO);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
   gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 1);
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.writeFramebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.write.framebuffer);
   gl.viewport(0, 0, gpuState.n, 1);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -184,17 +184,17 @@ export const updateVelocityGPU = (
   gl.bindVertexArray(quadVAO);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocityGuess.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocityGuess.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'velocityGuessSampler'), 0);
   gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 1);
   gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.fPressure.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.fPressure.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'fPressureSampler'), 2);
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.writeFramebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
   gl.viewport(0, 0, gpuState.n, 1);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);

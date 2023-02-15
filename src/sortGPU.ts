@@ -60,11 +60,11 @@ export const sortEvenOdd = (
 
   for (let i = 0; i < width * height; ++i) {
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture.readTexture);
+    gl.bindTexture(gl.TEXTURE_2D, texture.read.texture);
     gl.uniform1i(inputSamplerLoc, 0);
     gl.uniform1i(oddStepLoc, i % 2);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.writeFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.write.framebuffer);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
@@ -117,12 +117,12 @@ export const sortOddEvenMerge = (
   for (let stageWidth = 1; stageWidth < nextPowerOf2(n); stageWidth *= 2) {
     // for each pass in a stage, width is halved (merge steps)
     for (let compareWidth = stageWidth; compareWidth >= 1; compareWidth /= 2) {
-      gl.bindTexture(gl.TEXTURE_2D, texture.readTexture);
+      gl.bindTexture(gl.TEXTURE_2D, texture.read.texture);
       gl.uniform1i(inputSamplerLoc, 0);
       gl.uniform1i(stageWidthLoc, stageWidth);
       gl.uniform1i(compareWidthLoc, compareWidth);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, texture.writeFramebuffer);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, texture.write.framebuffer);
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
       texture.swap();
     }
@@ -161,12 +161,12 @@ export const testSort = (gl: WebGL2RenderingContext) => {
 
   for (let i = 0; i < iters + warmup; ++i) {
     data = makeData();
-    copyToTextureInt(gl, data, tex.readTexture, N, 1, gl.RG_INTEGER);
+    copyToTextureInt(gl, data, tex.read.texture, N, 1, gl.RG_INTEGER);
     if (i >= warmup) {
       totalCPU += time(() => data.sort());
       totalGPU += time(() => sortOddEvenMerge(gl, tex, N, 1));
     }
-    copyFromTextureInt(gl, tex.readFramebuffer, data, N, 1, gl.RG_INTEGER);
+    copyFromTextureInt(gl, tex.read.framebuffer, data, N, 1, gl.RG_INTEGER);
   }
 
   console.log('after', data);

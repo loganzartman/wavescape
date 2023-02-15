@@ -20,7 +20,7 @@ export const updateNeighborsGPU = (
   if (DEBUG) {
     console.log('updated key/index pairs');
     const tmp = new Int32Array(gpuState.n * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.read.framebuffer);
     gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
@@ -31,7 +31,7 @@ export const updateNeighborsGPU = (
   if (DEBUG) {
     console.log('sorted key/index pairs');
     const tmp = new Int32Array(gpuState.n * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.readFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.read.framebuffer);
     gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
@@ -42,7 +42,10 @@ export const updateNeighborsGPU = (
   if (DEBUG) {
     console.log('updated start indices');
     const tmp = new Float32Array(gpuState.n * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.readFramebuffer);
+    gl.bindFramebuffer(
+      gl.FRAMEBUFFER,
+      gpuState.neighborsTable.read.framebuffer
+    );
     gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
@@ -73,7 +76,7 @@ const updateKeyIndexPairs = (
   gl.viewport(0, 0, gpuState.n, 1);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
 
   gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
@@ -88,7 +91,7 @@ const updateKeyIndexPairs = (
     params.hSmoothing * 0.5
   );
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.writeFramebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.keyIndexPairs.write.framebuffer);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.keyIndexPairs.swap();
@@ -129,7 +132,7 @@ const updateStartIndex = (
   gl.viewport(0, 0, gpuState.n, 1);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.readTexture);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
   gl.uniform2i(
     gl.getUniformLocation(program, 'positionResolution'),
@@ -147,7 +150,7 @@ const updateStartIndex = (
     params.hSmoothing * 0.5
   );
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.writeFramebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.write.framebuffer);
   gl.clearColor(gpuState.n, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.enable(gl.BLEND);
