@@ -31,10 +31,11 @@ void main() {
   // read value of self and pair
   ivec2 texCoordi = ivec2(i % resolution.x, i / resolution.x);
   ivec2 texCoordj = ivec2(j % resolution.x, j / resolution.x);
-  int vi = texelFetch(inputSampler, texCoordi, 0).r;
-  int vj = texelFetch(inputSampler, texCoordj, 0).r;
+  // values consist of (key, value)
+  ivec2 vi = texelFetch(inputSampler, texCoordi, 0).rg;
+  ivec2 vj = texelFetch(inputSampler, texCoordj, 0).rg;
 
-  int result;
+  ivec2 result;
   int sw2 = stageWidth * 2;
   int lower = (i / sw2) * sw2;
   int upper = lower + sw2;
@@ -44,12 +45,12 @@ void main() {
   } else {
     if (isLeft) {
       // self is on the left side of the pair; pick <
-      result = vi < vj ? vi : vj;
+      result = vi.x < vj.x ? vi : vj;
     } else {
       // self is on the right side of the pair; pick >=
-      result = vi >= vj ? vi : vj;
+      result = vi.x >= vj.x ? vi : vj;
     }
   }
 
-  outResult = ivec4(result, 0, 0, 0);
+  outResult = ivec4(result, 0, 0);
 }

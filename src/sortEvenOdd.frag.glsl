@@ -16,17 +16,18 @@ void main() {
 
   ivec2 texCoordSelf = ivec2(selfIndex % resolution.x, selfIndex / resolution.x);
   ivec2 texCoordComp = ivec2(compIndex % resolution.x, compIndex / resolution.x);
-  int self = texelFetch(inputSampler, texCoordSelf, 0).r;
-  int comp = texelFetch(inputSampler, texCoordComp, 0).r;
+  // (key, value) pairs
+  ivec2 self = texelFetch(inputSampler, texCoordSelf, 0).rg;
+  ivec2 comp = texelFetch(inputSampler, texCoordComp, 0).rg;
 
-  int result;
+  ivec2 result;
   if (compIndex < 0 || compIndex > len - 1) {
     result = self;
   } else if ((selfIndex + oddStep) % 2 == 0) {
-    result = self < comp ? self : comp;
+    result = self.x < comp.x ? self : comp;
   } else {
-    result = self >= comp ? self : comp;
+    result = self.x >= comp.x ? self : comp;
   }
 
-  outResult = ivec4(result, 0, 0, 0);
+  outResult = ivec4(result, 0, 0);
 }

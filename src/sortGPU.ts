@@ -150,33 +150,38 @@ export const sortOddEvenMerge = (
 };
 
 export const testSort = (gl: WebGL2RenderingContext) => {
-  const N = 256;
+  const N = 128;
   const tex = new PingPongTexture(gl, () =>
     createTexture2D(gl, {
-      internalFormat: gl.R32I,
+      internalFormat: gl.RG32I,
       width: N,
       height: N,
     })
   );
 
-  let data = new Int32Array(
-    shuffle(Array.from({length: N * N}).map((_, i) => i))
-  );
+  const makeData = () =>
+    new Int32Array(
+      shuffle(Array.from({length: N * N}).map((_, i) => i)).flatMap((i) => [
+        i,
+        i * 10,
+      ])
+    );
+  let data = makeData();
   console.log('before', data);
 
-  const iters = 50;
+  const iters = 20;
   const warmup = 10;
   let totalCPU = 0;
   let totalGPU = 0;
 
   for (let i = 0; i < iters + warmup; ++i) {
-    shuffle(data);
-    copyToTextureInt(gl, data, tex.readTexture, N, N, gl.RED_INTEGER);
+    data = makeData();
+    copyToTextureInt(gl, data, tex.readTexture, N, N, gl.RG_INTEGER);
     if (i >= warmup) {
       totalCPU += time(() => data.sort());
       totalGPU += time(() => sortOddEvenMerge(gl, tex, N, N));
     }
-    copyFromTextureInt(gl, tex.readFramebuffer, data, N, N, gl.RED_INTEGER);
+    copyFromTextureInt(gl, tex.readFramebuffer, data, N, N, gl.RG_INTEGER);
   }
 
   console.log('after', data);
