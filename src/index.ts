@@ -21,7 +21,7 @@ if (!enableFloatTexture(gl)) {
   throw new Error('Device does not support rendering to float texture');
 }
 
-testSort(gl);
+// testSort(gl);
 
 const n = 10;
 const state: State = allocateState({n});

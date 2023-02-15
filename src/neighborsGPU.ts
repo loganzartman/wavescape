@@ -10,7 +10,7 @@ import updateStartIndexFrag from './updateStartIndex.frag.glsl';
 import updateCountVert from './updateCount.vert.glsl';
 import updateCountFrag from './updateCount.frag.glsl';
 
-const DEBUG = true;
+const DEBUG = false;
 
 export const updateNeighborsGPU = (
   gl: WebGL2RenderingContext,
