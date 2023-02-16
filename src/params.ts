@@ -5,6 +5,7 @@ export type PrimaryParams = {
   stiffness: number;
   restDensity: number;
   hSmoothing: number;
+  cellSize: number;
 };
 
 export type DerivedParams = {
@@ -32,4 +33,5 @@ export const makeDefaultParams = (): Params =>
     stiffness: 1.0,
     restDensity: 3000,
     hSmoothing: 0.05,
+    cellSize: 0.1,
   });
