@@ -136,22 +136,18 @@ export const updateSimulation = (
   params: Params,
   dt: number
 ) => {
-  // updateNeighbors(state, params);
-
-  copyStateToGPU(gl, state, gpuState);
   updateNeighborsGPU(gl, gpuState, params);
   updateDensityGPU(gl, gpuState, params);
   updateVelocityGuessGPU(gl, gpuState, params, dt);
   updateFPressureGPU(gl, gpuState, params);
-
-  // updateDensity(state, params);
-  // updateVelocityGuess(state, params, dt);
-  // updatePressure(state, params);
-
   updateVelocityGPU(gl, gpuState, params, dt);
   advectParticlesGPU(gl, gpuState, params, dt);
   copyStateFromGPU(gl, state, gpuState);
 
+  // updateNeighbors(state, params);
+  // updateDensity(state, params);
+  // updateVelocityGuess(state, params, dt);
+  // updatePressure(state, params);
   // updateVelocity(state, params, dt);
   // advectParticles(state, params, dt);
 };

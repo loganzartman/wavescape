@@ -30,6 +30,7 @@ const params: Params = makeDefaultParams();
 
 const reset = () => {
   makeDamBreak(state, params);
+  copyStateToGPU(gl, state, gpuState);
 };
 
 reset();
