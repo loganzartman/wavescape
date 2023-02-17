@@ -7,6 +7,7 @@ import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import updateDensityFrag from './updateDensity.frag.glsl';
 import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
+import updateFPressureFrag from './updateFPressure.frag.glsl';
 
 const DEBUG = false;
 
@@ -206,6 +207,92 @@ const getUpdateVelocityGuessFrag = memoize((gl: WebGL2RenderingContext) =>
 const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
     shaders: [getCopyVertexVert(gl), getUpdateVelocityGuessFrag(gl)],
+  })
+);
+
+export const updateFPressureGPU = (
+  gl: WebGL2RenderingContext,
+  gpuState: GPUState,
+  params: Params
+) => {
+  const program = getUpdateFPressureProgram(gl);
+  const quadVAO = getQuadVAO(gl);
+
+  gl.useProgram(program);
+  gl.bindVertexArray(quadVAO);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 3);
+  gl.activeTexture(gl.TEXTURE4);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.density.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 4);
+
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'keyParticleResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'neighborsTableResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2f(
+    gl.getUniformLocation(program, 'cellSize'),
+    params.cellSize,
+    params.cellSize
+  );
+  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
+  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
+  gl.uniform1f(gl.getUniformLocation(program, 'eta'), params.eta);
+  gl.uniform1f(gl.getUniformLocation(program, 'stiffness'), params.stiffness);
+  gl.uniform1f(
+    gl.getUniformLocation(program, 'restDensity'),
+    params.restDensity
+  );
+  gl.uniform1f(
+    gl.getUniformLocation(program, 'particleRadius'),
+    params.particleRadius
+  );
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.write.framebuffer);
+  gl.disable(gl.BLEND);
+  gl.viewport(0, 0, gpuState.n, 1);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gpuState.fPressure.swap();
+
+  gl.bindVertexArray(null);
+  gl.useProgram(null);
+
+  if (DEBUG) {
+    console.log('updated fpressure');
+    const tmp = new Float32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.read.framebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(Array.from(tmp));
+  }
+};
+
+const getUpdateFPressureFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateFPressureFrag, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdateFPressureProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getCopyVertexVert(gl), getUpdateFPressureFrag(gl)],
   })
 );
 
