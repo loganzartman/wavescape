@@ -1,5 +1,5 @@
 import {createTexture2D, PingPongTexture, RenderTexture} from './gl';
-import {nextPowerOf2} from './util';
+import {dataTextureSize} from './util';
 
 export type PrimaryState = {
   n: number;
@@ -22,6 +22,8 @@ export type DerivedState = {
 };
 
 export type DerivedGPUState = {
+  dataW: number;
+  dataH: number;
   density: PingPongTexture;
   velocityGuess: PingPongTexture;
   fPressure: PingPongTexture;
@@ -35,15 +37,18 @@ export type NeighborGPUState = {
 export type State = PrimaryState & DerivedState;
 export type GPUState = PrimaryGPUState & DerivedGPUState & NeighborGPUState;
 
-export const allocateState = ({n}: {n: number}): State => ({
-  n,
-  position: new Float32Array(n * 2).map(() => 0),
-  velocity: new Float32Array(n * 2).map(() => 0),
-  mass: new Float32Array(n).map(() => 0),
-  density: new Float32Array(n).map(() => 0),
-  velocityGuess: new Float32Array(n * 2).map(() => 0),
-  fPressure: new Float32Array(n * 2).map(() => 0),
-});
+export const allocateState = ({n}: {n: number}): State => {
+  const size = dataTextureSize(n) ** 2;
+  return {
+    n,
+    position: new Float32Array(size * 2).map(() => 0),
+    velocity: new Float32Array(size * 2).map(() => 0),
+    mass: new Float32Array(size).map(() => 0),
+    density: new Float32Array(size).map(() => 0),
+    velocityGuess: new Float32Array(size * 2).map(() => 0),
+    fPressure: new Float32Array(size * 2).map(() => 0),
+  };
+};
 
 export const allocateGPUState = ({
   n,
@@ -52,7 +57,9 @@ export const allocateGPUState = ({
   n: number;
   gl: WebGL2RenderingContext;
 }): GPUState => {
-  const base = {width: nextPowerOf2(n), height: 1};
+  const dataW = dataTextureSize(n);
+  const dataH = dataTextureSize(n);
+  const base = {width: dataW, height: dataH};
 
   const position = new PingPongTexture(gl, () =>
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
@@ -86,6 +93,8 @@ export const allocateGPUState = ({
 
   return {
     n,
+    dataW,
+    dataH,
     position,
     velocity,
     mass,

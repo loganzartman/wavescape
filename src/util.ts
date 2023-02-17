@@ -8,9 +8,9 @@ export const nextPowerOf2 = (x: number): number => 2 ** Math.ceil(Math.log2(x));
 
 export const memoize = <F extends (...args: any[]) => any>(f: F): F => {
   let cached = false;
-  let cachedArgs;
-  let cachedResult;
-  const memoized: any = (...args) => {
+  let cachedArgs: Parameters<F>;
+  let cachedResult: ReturnType<F>;
+  const memoized: any = (...args: Parameters<F>) => {
     if (
       !cached ||
       !cachedArgs.every((_, i) => Object.is(cachedArgs![i], args[i]))
@@ -54,3 +54,5 @@ export const groupNComponents = <T>(a: T[], n: number): T[][] => {
   }
   return result;
 };
+
+export const dataTextureSize = (n: number) => Math.ceil(Math.sqrt(n));

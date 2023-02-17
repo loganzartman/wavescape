@@ -59,7 +59,11 @@ export const renderWebGL = (
   gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
 
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
   gl.uniform1f(
     gl.getUniformLocation(program, 'particleRadius'),
     params.particleRadius

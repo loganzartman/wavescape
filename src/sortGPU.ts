@@ -96,22 +96,25 @@ const getSortOddEvenMergeProgram = memoize((gl: WebGL2RenderingContext) =>
 export const sortOddEvenMerge = (
   gl: WebGL2RenderingContext,
   texture: PingPongTexture,
-  width: number,
-  height: number
+  textureW: number,
+  textureH: number,
+  n: number
 ) => {
   const program = getSortOddEvenMergeProgram(gl);
 
   gl.useProgram(program);
   gl.bindVertexArray(getQuadVAO(gl));
 
-  gl.viewport(0, 0, width, height);
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), width, height);
+  gl.viewport(0, 0, textureW, textureH);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    textureW,
+    textureH
+  );
   const inputSamplerLoc = gl.getUniformLocation(program, 'inputSampler');
   const stageWidthLoc = gl.getUniformLocation(program, 'stageWidth');
   const compareWidthLoc = gl.getUniformLocation(program, 'compareWidth');
   gl.activeTexture(gl.TEXTURE0);
-
-  const n = width * height;
 
   // "width" of a pair (distance between compared elements) increases as powers of 2
   for (let stageWidth = 1; stageWidth < nextPowerOf2(n); stageWidth *= 2) {
@@ -164,7 +167,7 @@ export const testSort = (gl: WebGL2RenderingContext) => {
     copyToTextureInt(gl, data, tex.read.texture, N, 1, gl.RG_INTEGER);
     if (i >= warmup) {
       totalCPU += time(() => data.sort());
-      totalGPU += time(() => sortOddEvenMerge(gl, tex, N, 1));
+      totalGPU += time(() => sortOddEvenMerge(gl, tex, N, 1, N));
     }
     copyFromTextureInt(gl, tex.read.framebuffer, data, N, 1, gl.RG_INTEGER);
   }

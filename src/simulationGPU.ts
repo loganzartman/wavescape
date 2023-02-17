@@ -16,11 +16,22 @@ export const copyToTexture = (
   gl: WebGL2RenderingContext,
   src: Float32Array,
   dst: WebGLTexture,
-  length: number,
+  width: number,
+  height: number,
   format: number
 ) => {
   gl.bindTexture(gl.TEXTURE_2D, dst);
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, length, 1, format, gl.FLOAT, src);
+  gl.texSubImage2D(
+    gl.TEXTURE_2D,
+    0,
+    0,
+    0,
+    width,
+    height,
+    format,
+    gl.FLOAT,
+    src
+  );
   gl.bindTexture(gl.TEXTURE_2D, null);
 };
 
@@ -33,36 +44,48 @@ export const copyStateToGPU = (
     gl,
     state.position,
     gpuState.position.read.texture,
-    state.n,
+    gpuState.dataW,
+    gpuState.dataH,
     gl.RG
   );
   copyToTexture(
     gl,
     state.velocity,
     gpuState.velocity.read.texture,
-    state.n,
+    gpuState.dataW,
+    gpuState.dataH,
     gl.RG
   );
-  copyToTexture(gl, state.mass, gpuState.mass.read.texture, state.n, gl.RED);
+  copyToTexture(
+    gl,
+    state.mass,
+    gpuState.mass.read.texture,
+    gpuState.dataW,
+    gpuState.dataH,
+    gl.RED
+  );
   copyToTexture(
     gl,
     state.density,
     gpuState.density.read.texture,
-    state.n,
+    gpuState.dataW,
+    gpuState.dataH,
     gl.RED
   );
   copyToTexture(
     gl,
     state.velocityGuess,
     gpuState.velocityGuess.read.texture,
-    state.n,
+    gpuState.dataW,
+    gpuState.dataH,
     gl.RG
   );
   copyToTexture(
     gl,
     state.fPressure,
     gpuState.fPressure.read.texture,
-    state.n,
+    gpuState.dataW,
+    gpuState.dataH,
     gl.RG
   );
 };
@@ -164,15 +187,19 @@ export const updateDensityGPU = (
 
   gl.uniform2i(
     gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'neighborsTableResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
     params.cellSize,
@@ -183,7 +210,7 @@ export const updateDensityGPU = (
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.write.framebuffer);
   gl.disable(gl.BLEND);
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.density.swap();
@@ -193,9 +220,9 @@ export const updateDensityGPU = (
 
   if (DEBUG) {
     console.log('updated density');
-    const tmp = new Float32Array(gpuState.n);
+    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH);
     gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.read.framebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RED, gl.FLOAT, tmp);
+    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RED, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -240,15 +267,19 @@ export const updateFPressureGPU = (
 
   gl.uniform2i(
     gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'neighborsTableResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
     params.cellSize,
@@ -269,7 +300,7 @@ export const updateFPressureGPU = (
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.write.framebuffer);
   gl.disable(gl.BLEND);
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.fPressure.swap();
@@ -279,9 +310,9 @@ export const updateFPressureGPU = (
 
   if (DEBUG) {
     console.log('updated fpressure');
-    const tmp = new Float32Array(gpuState.n * 2);
+    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH * 2);
     gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.read.framebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -330,15 +361,19 @@ export const updateVelocityGuessGPU = (
 
   gl.uniform2i(
     gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'neighborsTableResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
     params.cellSize,
@@ -356,7 +391,7 @@ export const updateVelocityGuessGPU = (
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.write.framebuffer);
   gl.disable(gl.BLEND);
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.velocityGuess.swap();
@@ -366,9 +401,9 @@ export const updateVelocityGuessGPU = (
 
   if (DEBUG) {
     console.log('updated velocity guess');
-    const tmp = new Float32Array(gpuState.n * 2);
+    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH * 2);
     gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.read.framebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -405,7 +440,7 @@ export const advectParticlesGPU = (
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.write.framebuffer);
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.position.swap();
@@ -447,7 +482,7 @@ export const updateVelocityGPU = (
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.velocity.swap();

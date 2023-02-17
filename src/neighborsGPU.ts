@@ -21,26 +21,48 @@ export const updateNeighborsGPU = (
 
   if (DEBUG) {
     console.log('updated key/index pairs');
-    const tmp = new Int32Array(gpuState.n * 2);
+    const tmp = new Int32Array(gpuState.dataW * gpuState.dataH * 2);
     gl.bindFramebuffer(
       gl.FRAMEBUFFER,
       gpuState.keyParticlePairs.read.framebuffer
     );
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
+    gl.readPixels(
+      0,
+      0,
+      gpuState.dataW,
+      gpuState.dataH,
+      gl.RG_INTEGER,
+      gl.INT,
+      tmp
+    );
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
   }
 
-  sortOddEvenMerge(gl, gpuState.keyParticlePairs, gpuState.n, 1);
+  sortOddEvenMerge(
+    gl,
+    gpuState.keyParticlePairs,
+    gpuState.dataW,
+    gpuState.dataH,
+    gpuState.n
+  );
 
   if (DEBUG) {
     console.log('sorted key/index pairs');
-    const tmp = new Int32Array(gpuState.n * 2);
+    const tmp = new Int32Array(gpuState.dataW * gpuState.dataH * 2);
     gl.bindFramebuffer(
       gl.FRAMEBUFFER,
       gpuState.keyParticlePairs.read.framebuffer
     );
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG_INTEGER, gl.INT, tmp);
+    gl.readPixels(
+      0,
+      0,
+      gpuState.dataW,
+      gpuState.dataH,
+      gl.RG_INTEGER,
+      gl.INT,
+      tmp
+    );
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
   }
@@ -49,9 +71,9 @@ export const updateNeighborsGPU = (
 
   if (DEBUG) {
     console.log('updated start indices');
-    const tmp = new Float32Array(gpuState.n * 2);
+    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH * 2);
     gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
   }
@@ -60,9 +82,9 @@ export const updateNeighborsGPU = (
 
   if (DEBUG) {
     console.log('updated counts');
-    const tmp = new Float32Array(gpuState.n * 2);
+    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH * 2);
     gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
-    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
+    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(groupNComponents(Array.from(tmp), 2));
   }
@@ -87,17 +109,21 @@ const updateKeyIndexPairs = (
   const program = getUpdateKeyIndexPairsProgram(gl);
   gl.useProgram(program);
   gl.bindVertexArray(getQuadVAO(gl));
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
 
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
   gl.uniform2i(
     gl.getUniformLocation(program, 'tableResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
@@ -142,20 +168,20 @@ const updateStartIndex = (
   // each particle will be represented as a single point, but their data is backed by textures.
   // so, we don't actually need any vertex attributes.
   gl.bindVertexArray(getEmptyVAO(gl));
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
   gl.uniform2i(
     gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'tableResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
@@ -195,20 +221,20 @@ const updateCount = (
   // each particle will be represented as a single point, but their data is backed by textures.
   // so, we don't actually need any vertex attributes.
   gl.bindVertexArray(getEmptyVAO(gl));
-  gl.viewport(0, 0, gpuState.n, 1);
+  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
   gl.uniform2i(
     gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'tableResolution'),
-    gpuState.n,
-    1
+    gpuState.dataW,
+    gpuState.dataH
   );
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
