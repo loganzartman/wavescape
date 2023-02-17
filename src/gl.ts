@@ -27,7 +27,7 @@ type FramebufferAttachments = {
   stencilAttachment?: WebGLTexture;
 };
 export const setFramebufferAttachments = (
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   framebuffer: WebGLFramebuffer,
   {colorAttachments, depthAttachment, stencilAttachment}: FramebufferAttachments
 ) => {
@@ -39,7 +39,7 @@ export const setFramebufferAttachments = (
     for (let i = 0; i < colorAttachments.length; ++i) {
       gl.framebufferTexture2D(
         gl.FRAMEBUFFER,
-        gl[`COLOR_ATTACHMENT${i}`],
+        (gl as any)[`COLOR_ATTACHMENT${i}`],
         gl.TEXTURE_2D,
         colorAttachments[i],
         0
@@ -144,6 +144,7 @@ type VertexAttribParams = {
   size: number;
   stride?: number;
   offset?: number;
+  divisor?: number;
 };
 export const createVAO = (
   gl: WebGL2RenderingContext,
