@@ -10,9 +10,10 @@ import {enableFloatTexture} from './gl';
 import {testSort} from './sortGPU';
 import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
+import {renderWebGL} from './renderWebGL';
 
 type Mode = 'cpu' | 'webgl';
-const MODE = 'cpu' as Mode;
+const MODE = 'webgl' as Mode;
 
 type RunnerState = {
   running: boolean;
@@ -89,7 +90,8 @@ const frame = (
     const ctx = canvas.getContext('2d');
     renderCanvas2D(ctx, state, params);
   } else {
-    throw new Error('Not implemented');
+    const gl = canvas.getContext('webgl2');
+    renderWebGL(gl, gpuState, params);
   }
 };
 
