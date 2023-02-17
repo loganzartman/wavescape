@@ -109,6 +109,31 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
     state.velocity[i * 2 + 1] =
       state.velocityGuess[i * 2 + 1] +
       (dt / state.mass[i]) * state.fPressure[i * 2 + 1];
+
+    // kinematic particle-particle collisions
+    let dvxCollision = 0;
+    let dvyCollision = 0;
+    let collidedMass = 0;
+    const dCol = params.particleRadius;
+    const restitution = 0.9;
+    forEachNeighbor(state, params, i, (j) => {
+      const dx = state.position[i * 2 + 0] - state.position[j * 2 + 0];
+      const dy = state.position[i * 2 + 1] - state.position[j * 2 + 1];
+      const dvx = state.velocity[i * 2 + 0] - state.velocity[j * 2 + 0];
+      const dvy = state.velocity[i * 2 + 1] - state.velocity[j * 2 + 1];
+      const d = length(dx, dy);
+      const dotDxDv = dot(dx, dy, dvx, dvy);
+      if (d < dCol && dotDxDv < 0) {
+        collidedMass += state.mass[j];
+        dvxCollision +=
+          state.mass[j] * (1 + restitution) * (dotDxDv / d) * (dx / d);
+        dvyCollision +=
+          state.mass[j] * (1 + restitution) * (dotDxDv / d) * (dy / d);
+      }
+    });
+    const collisionTerm = 1 / (state.mass[i] + collidedMass);
+    state.velocity[i * 2 + 0] -= collisionTerm * dvxCollision;
+    state.velocity[i * 2 + 1] -= collisionTerm * dvyCollision;
   }
 };
 
