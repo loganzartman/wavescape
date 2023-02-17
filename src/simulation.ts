@@ -50,26 +50,8 @@ export const updateVelocityGuess = (
     const fGravX = 0;
     const fGravY = 0.5;
 
-    // hacky wall penalty force
-    const wallSize = params.particleRadius;
-    const kWall = 2000;
-    let fWallX = 0;
-    let fWallY = 0;
-    if (state.position[i * 2 + 0] < wallSize) {
-      fWallX += kWall * (wallSize - state.position[i * 2 + 0]);
-    }
-    if (state.position[i * 2 + 1] < wallSize) {
-      fWallY += kWall * (wallSize - state.position[i * 2 + 1]);
-    }
-    if (state.position[i * 2 + 0] > 1 - wallSize) {
-      fWallX -= kWall * (state.position[i * 2 + 0] - (1 - wallSize));
-    }
-    if (state.position[i * 2 + 1] > 1 - wallSize) {
-      fWallY -= kWall * (state.position[i * 2 + 1] - (1 - wallSize));
-    }
-
-    const fExtX = fMouseX + fGravX + fWallX;
-    const fExtY = fMouseY + fGravY + fWallY;
+    const fExtX = fMouseX + fGravX;
+    const fExtY = fMouseY + fGravY;
 
     state.velocityGuess[i * 2 + 0] =
       state.velocity[i * 2 + 0] + (dt / state.mass[i]) * (fViscosityX + fExtX);
@@ -134,6 +116,28 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
     const collisionTerm = 1 / (state.mass[i] + collidedMass);
     state.velocity[i * 2 + 0] -= collisionTerm * dvxCollision;
     state.velocity[i * 2 + 1] -= collisionTerm * dvyCollision;
+
+    // kinematic particle-wall collisions
+    const wallSize = params.particleRadius;
+    const wallRestitution = 0.5;
+    if (state.position[i * 2 + 0] < wallSize && state.velocity[i * 2 + 0] < 0) {
+      state.velocity[i * 2 + 0] *= -wallRestitution;
+    }
+    if (state.position[i * 2 + 1] < wallSize && state.velocity[i * 2 + 1] < 0) {
+      state.velocity[i * 2 + 1] *= -wallRestitution;
+    }
+    if (
+      state.position[i * 2 + 0] > 1 - wallSize &&
+      state.velocity[i * 2 + 0] > 0
+    ) {
+      state.velocity[i * 2 + 0] *= -wallRestitution;
+    }
+    if (
+      state.position[i * 2 + 1] > 1 - wallSize &&
+      state.velocity[i * 2 + 1] > 0
+    ) {
+      state.velocity[i * 2 + 1] *= -wallRestitution;
+    }
   }
 };
 
