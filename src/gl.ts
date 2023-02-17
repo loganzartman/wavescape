@@ -202,15 +202,12 @@ export class PingPongTexture {
   }
 
   swap() {
-    const temp = this.read.texture;
+    const temptex = this.read.texture;
+    const tempfb = this.read.framebuffer;
     this.read.texture = this.write.texture;
-    this.write.texture = temp;
-    setFramebufferAttachments(this.gl, this.read.framebuffer, {
-      colorAttachments: [this.read.texture],
-    });
-    setFramebufferAttachments(this.gl, this.write.framebuffer, {
-      colorAttachments: [this.write.texture],
-    });
+    this.write.texture = temptex;
+    this.read.framebuffer = this.write.framebuffer;
+    this.write.framebuffer = tempfb;
   }
 }
 
