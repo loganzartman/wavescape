@@ -119,7 +119,7 @@ const init = () => {
   const n = 500;
   const state: State = allocateState({n});
   const gpuState: GPUState | null = gl ? allocateGPUState({gl, n}) : null;
-  const params: Params = makeDefaultParams();
+  const params: Params = makeDefaultParams({n});
 
   document.getElementById('container')!.appendChild(canvas);
   addEventListener('resize', () => resize(canvas), false);

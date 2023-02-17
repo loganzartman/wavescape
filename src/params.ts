@@ -25,13 +25,28 @@ export const withDerived = (params: PrimaryParams): Params => ({
   },
 });
 
-export const makeDefaultParams = (): Params =>
-  withDerived({
-    dimension: 2,
-    particleRadius: 0.01,
-    viscosity: 0.002,
-    stiffness: 1.0,
-    restDensity: 3000,
-    hSmoothing: 0.05,
-    cellSize: 0.1,
-  });
+const scaleByN = (
+  defaultN: number,
+  actualN: number,
+  params: PrimaryParams
+): PrimaryParams => {
+  const f = actualN / defaultN;
+  return {
+    ...params,
+    particleRadius: params.particleRadius / f ** 0.5,
+    restDensity: params.restDensity * f,
+  };
+};
+
+export const makeDefaultParams = ({n}: {n: number}): Params =>
+  withDerived(
+    scaleByN(500, n, {
+      dimension: 2,
+      particleRadius: 0.01,
+      viscosity: 0.002,
+      stiffness: 1.0,
+      restDensity: 3000,
+      hSmoothing: 0.05,
+      cellSize: 0.1,
+    })
+  );
