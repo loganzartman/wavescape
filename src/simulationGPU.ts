@@ -6,6 +6,7 @@ import updateVelocityFrag from './updateVelocity.frag.glsl';
 import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import updateDensityFrag from './updateDensity.frag.glsl';
+import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
 
 const DEBUG = false;
 
@@ -193,6 +194,93 @@ export const updateDensityGPU = (
     const tmp = new Float32Array(gpuState.n);
     gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.read.framebuffer);
     gl.readPixels(0, 0, gpuState.n, 1, gl.RED, gl.FLOAT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(Array.from(tmp));
+  }
+};
+
+const getUpdateVelocityGuessFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateVelocityGuessFrag, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getCopyVertexVert(gl), getUpdateVelocityGuessFrag(gl)],
+  })
+);
+
+export const updateVelocityGuessGPU = (
+  gl: WebGL2RenderingContext,
+  gpuState: GPUState,
+  params: Params,
+  dt: number
+) => {
+  const program = getUpdateVelocityGuessProgram(gl);
+  const quadVAO = getQuadVAO(gl);
+
+  gl.useProgram(program);
+  gl.bindVertexArray(quadVAO);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 3);
+  gl.activeTexture(gl.TEXTURE4);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 4);
+  gl.activeTexture(gl.TEXTURE5);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.density.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 5);
+
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'keyParticleResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'neighborsTableResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2f(
+    gl.getUniformLocation(program, 'cellSize'),
+    params.cellSize,
+    params.cellSize
+  );
+  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
+  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
+  gl.uniform1f(gl.getUniformLocation(program, 'eta'), params.eta);
+  gl.uniform1f(gl.getUniformLocation(program, 'viscosity'), params.viscosity);
+  gl.uniform1f(
+    gl.getUniformLocation(program, 'particleRadius'),
+    params.particleRadius
+  );
+  gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.write.framebuffer);
+  gl.disable(gl.BLEND);
+  gl.viewport(0, 0, gpuState.n, 1);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gpuState.velocityGuess.swap();
+
+  gl.bindVertexArray(null);
+  gl.useProgram(null);
+
+  if (DEBUG) {
+    console.log('updated velocity guess');
+    const tmp = new Float32Array(gpuState.n * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.read.framebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }

@@ -10,6 +10,7 @@ import {
   copyStateToGPU,
   updateDensityGPU,
   updateVelocityGPU,
+  updateVelocityGuessGPU,
 } from './simulationGPU';
 import {updateNeighborsGPU} from './neighborsGPU';
 
@@ -139,10 +140,11 @@ export const updateSimulation = (
   copyStateToGPU(gl, state, gpuState);
   updateNeighborsGPU(gl, gpuState, params);
   updateDensityGPU(gl, gpuState, params);
+  updateVelocityGuessGPU(gl, gpuState, params, dt);
   copyStateFromGPU(gl, state, gpuState);
 
   // updateDensity(state, params);
-  updateVelocityGuess(state, params, dt);
+  // updateVelocityGuess(state, params, dt);
   updatePressure(state, params);
 
   copyStateToGPU(gl, state, gpuState);
