@@ -5,6 +5,9 @@ import advectParticlesFrag from './advectParticles.frag.glsl';
 import updateVelocityFrag from './updateVelocity.frag.glsl';
 import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
+import updateDensityFrag from './updateDensity.frag.glsl';
+
+const DEBUG = false;
 
 export const copyToTexture = (
   gl: WebGL2RenderingContext,
@@ -120,6 +123,79 @@ export const copyStateFromGPU = (
     state.n,
     gl.RG
   );
+};
+
+const getUpdateDensityFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateDensityFrag, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdateDensityProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getCopyVertexVert(gl), getUpdateDensityFrag(gl)],
+  })
+);
+
+export const updateDensityGPU = (
+  gl: WebGL2RenderingContext,
+  gpuState: GPUState,
+  params: Params
+) => {
+  const program = getUpdateDensityProgram(gl);
+  const quadVAO = getQuadVAO(gl);
+
+  gl.useProgram(program);
+  gl.bindVertexArray(quadVAO);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 3);
+
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'keyParticleResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'neighborsTableResolution'),
+    gpuState.n,
+    1
+  );
+  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), gpuState.n, 1);
+  gl.uniform2f(
+    gl.getUniformLocation(program, 'cellSize'),
+    params.cellSize,
+    params.cellSize
+  );
+  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
+  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.write.framebuffer);
+  gl.disable(gl.BLEND);
+  gl.viewport(0, 0, gpuState.n, 1);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gpuState.density.swap();
+
+  gl.bindVertexArray(null);
+  gl.useProgram(null);
+
+  if (DEBUG) {
+    console.log('updated density');
+    const tmp = new Float32Array(gpuState.n);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.read.framebuffer);
+    gl.readPixels(0, 0, gpuState.n, 1, gl.RED, gl.FLOAT, tmp);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(Array.from(tmp));
+  }
 };
 
 const getAdvectParticlesFrag = memoize((gl: WebGL2RenderingContext) =>
