@@ -1,19 +1,9 @@
-import {clearState, GPUState, State} from './state';
+import {State} from './state';
 import {Params} from './params';
 import {W, dW} from './kernel';
 import {updateNeighbors, forEachNeighbor} from './neighbors';
 import {dot, length} from './util';
 import {getPointerForce} from './pointer';
-import {
-  advectParticlesGPU,
-  copyStateFromGPU,
-  copyStateToGPU,
-  updateDensityGPU,
-  updateFPressureGPU,
-  updateVelocityGPU,
-  updateVelocityGuessGPU,
-} from './simulationGPU';
-import {updateNeighborsGPU} from './neighborsGPU';
 
 export const updateDensity = (state: State, params: Params) => {
   for (let i = 0; i < state.n; ++i) {
@@ -129,25 +119,11 @@ const advectParticles = (state: State, params: Params, dt: number) => {
   }
 };
 
-export const updateSimulation = (
-  state: State,
-  gl: WebGL2RenderingContext,
-  gpuState: GPUState,
-  params: Params,
-  dt: number
-) => {
-  updateNeighborsGPU(gl, gpuState, params);
-  updateDensityGPU(gl, gpuState, params);
-  updateVelocityGuessGPU(gl, gpuState, params, dt);
-  updateFPressureGPU(gl, gpuState, params);
-  updateVelocityGPU(gl, gpuState, params, dt);
-  advectParticlesGPU(gl, gpuState, params, dt);
-  copyStateFromGPU(gl, state, gpuState);
-
-  // updateNeighbors(state, params);
-  // updateDensity(state, params);
-  // updateVelocityGuess(state, params, dt);
-  // updatePressure(state, params);
-  // updateVelocity(state, params, dt);
-  // advectParticles(state, params, dt);
+export const updateSimulation = (state: State, params: Params, dt: number) => {
+  updateNeighbors(state, params);
+  updateDensity(state, params);
+  updateVelocityGuess(state, params, dt);
+  updatePressure(state, params);
+  updateVelocity(state, params, dt);
+  advectParticles(state, params, dt);
 };

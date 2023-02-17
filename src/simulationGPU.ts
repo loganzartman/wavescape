@@ -8,6 +8,7 @@ import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import updateDensityFrag from './updateDensity.frag.glsl';
 import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
 import updateFPressureFrag from './updateFPressure.frag.glsl';
+import {updateNeighborsGPU} from './neighborsGPU';
 
 const DEBUG = false;
 
@@ -453,4 +454,18 @@ export const updateVelocityGPU = (
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
+};
+
+export const updateSimulationGPU = (
+  gl: WebGL2RenderingContext,
+  gpuState: GPUState,
+  params: Params,
+  dt: number
+) => {
+  updateNeighborsGPU(gl, gpuState, params);
+  updateDensityGPU(gl, gpuState, params);
+  updateVelocityGuessGPU(gl, gpuState, params, dt);
+  updateFPressureGPU(gl, gpuState, params);
+  updateVelocityGPU(gl, gpuState, params, dt);
+  advectParticlesGPU(gl, gpuState, params, dt);
 };

@@ -8,82 +8,131 @@ import {initPointer, updatePointer} from './pointer';
 import {createUi} from './tweaks';
 import {enableFloatTexture} from './gl';
 import {testSort} from './sortGPU';
-import {copyStateToGPU} from './simulationGPU';
+import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
 
-let running = true;
-let step = false;
+type Mode = 'cpu' | 'webgl';
+const MODE = 'cpu' as Mode;
 
-const glCanvas = document.createElement('canvas');
-const gl = glCanvas.getContext('webgl2');
-if (!gl) {
-  throw new Error('Failed to get WebGL2 context');
-}
-if (!enableFloatTexture(gl)) {
-  throw new Error('Device does not support rendering to float texture');
-}
-
-// testSort(gl);
-
-const n = 500;
-const state: State = allocateState({n});
-const gpuState: GPUState = allocateGPUState({gl, n});
-const params: Params = makeDefaultParams();
-
-const reset = () => {
-  makeDamBreak(state, params);
-  copyStateToGPU(gl, state, gpuState);
+type RunnerState = {
+  running: boolean;
+  step: boolean;
+  tLast: number;
 };
 
-reset();
-initPointer();
-createUi(params);
-
-const canvas = document.createElement('canvas');
-const resize = () => {
+const resize = (canvas: HTMLCanvasElement) => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 };
-resize();
-addEventListener('resize', resize, false);
 
-addEventListener(
-  'keydown',
-  (event) => {
-    if (event.code == 'Space') {
-      running = !running;
-    }
-    if (event.code == 'KeyR') {
-      reset();
-    }
-    if (event.code == 'KeyS') {
-      step = true;
-    }
-  },
-  false
-);
+const reset = (
+  canvas: HTMLCanvasElement,
+  state: State,
+  gpuState: GPUState | null,
+  params: Params
+) => {
+  makeDamBreak(state, params);
+  if (gpuState) {
+    const gl = canvas.getContext('webgl2');
+    copyStateToGPU(gl, state, gpuState);
+  }
+};
 
-let tLast = Date.now();
-const simulate = () => {
+const initKeybinds = (
+  canvas: HTMLCanvasElement,
+  runnerState: RunnerState,
+  state: State,
+  gpuState: GPUState | null,
+  params: Params
+) => {
+  addEventListener(
+    'keydown',
+    (event) => {
+      if (event.code == 'Space') {
+        runnerState.running = !runnerState.running;
+      }
+      if (event.code == 'KeyR') {
+        reset(canvas, state, gpuState, params);
+      }
+      if (event.code == 'KeyS') {
+        runnerState.step = true;
+      }
+    },
+    false
+  );
+};
+
+const frame = (
+  canvas: HTMLCanvasElement,
+  runnerState: RunnerState,
+  state: State,
+  gpuState: GPUState,
+  params: Params
+) => {
   const dt = 0.02;
-  const realDt = (Date.now() - tLast) / 1000;
-  tLast = Date.now();
+  const realDt = (Date.now() - runnerState.tLast) / 1000;
+  runnerState.tLast = Date.now();
 
   updatePointer(realDt);
-  updateSimulation(state, gl, gpuState, params, dt);
-};
 
-const frame = () => {
-  if (running || step) {
-    simulate();
-    step = false;
+  if (runnerState.running || runnerState.step) {
+    if (MODE === 'cpu') {
+      updateSimulation(state, params, dt);
+    } else {
+      const gl = canvas.getContext('webgl2');
+      updateSimulationGPU(gl, gpuState, params, dt);
+    }
+    runnerState.step = false;
   }
 
-  const ctx = canvas.getContext('2d')!;
-  renderCanvas2D(ctx, state, params);
-
-  requestAnimationFrame(frame);
+  if (MODE === 'cpu') {
+    const ctx = canvas.getContext('2d');
+    renderCanvas2D(ctx, state, params);
+  } else {
+    throw new Error('Not implemented');
+  }
 };
-requestAnimationFrame(frame);
 
-document.getElementById('container')!.appendChild(canvas);
+const init = () => {
+  const canvas = document.createElement('canvas');
+
+  let gl: WebGL2RenderingContext | null = null;
+  if (MODE === 'webgl') {
+    gl = canvas.getContext('webgl2');
+    if (!gl) {
+      throw new Error('Failed to get WebGL2 context');
+    }
+    if (!enableFloatTexture(gl)) {
+      throw new Error('Device does not support rendering to float texture');
+    }
+    // testSort(gl);
+  }
+
+  const runnerState: RunnerState = {
+    running: true,
+    step: false,
+    tLast: Date.now(),
+  };
+
+  const n = 500;
+  const state: State = allocateState({n});
+  const gpuState: GPUState | null = gl ? allocateGPUState({gl, n}) : null;
+  const params: Params = makeDefaultParams();
+
+  document.getElementById('container')!.appendChild(canvas);
+  addEventListener('resize', () => resize(canvas), false);
+
+  resize(canvas);
+  reset(canvas, state, gpuState, params);
+  initPointer();
+  initKeybinds(canvas, runnerState, state, gpuState, params);
+  createUi(params);
+
+  const runFrame = () => {
+    frame(canvas, runnerState, state, gpuState, params);
+    requestAnimationFrame(runFrame);
+  };
+  requestAnimationFrame(runFrame);
+};
+
+init();
