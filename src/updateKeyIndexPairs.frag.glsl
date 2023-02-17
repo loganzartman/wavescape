@@ -9,8 +9,7 @@ uniform sampler2D positionSampler;
 
 out ivec4 keyIndexPair;
 
-int cellKey(vec2 particlePos, int tableSize) {
-  ivec2 cellPos = ivec2(floor(particlePos / cellSize));
+int cellHash(ivec2 cellPos, int tableSize) {
   int hash = (cellPos.x * 73856093) ^ (cellPos.y * 19349663);
   return hash % tableSize;
 }
@@ -21,6 +20,7 @@ void main() {
   ivec2 texCoord = ivec2(gl_FragCoord.xy);
   vec2 particlePos = texelFetch(positionSampler, texCoord, 0).rg;
 
-  keyIndexPair.x = cellKey(particlePos, tableResolution.x * tableResolution.y);
+  ivec2 cellPos = ivec2(floor(particlePos / cellSize));
+  keyIndexPair.x = cellHash(cellPos, tableResolution.x * tableResolution.y);
   keyIndexPair.y = index;
 }
