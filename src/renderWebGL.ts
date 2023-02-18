@@ -58,6 +58,13 @@ export const renderWebGL = (
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 1);
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 2);
+  gl.uniform1i(gl.getUniformLocation(program, 'n'), gpuState.n);
 
   gl.uniform2i(
     gl.getUniformLocation(program, 'resolution'),
