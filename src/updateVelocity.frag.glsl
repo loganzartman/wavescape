@@ -19,6 +19,7 @@ uniform float particleRadius;
 uniform float collisionDistance;
 uniform float particleRestitution;
 uniform float wallRestitution;
+uniform float eta;
 uniform float dt;
 
 out vec4 outVelocity;
@@ -64,7 +65,7 @@ void main() {
         vec2 neighborVel = texelFetch(velocitySampler, neighborTexCoord, 0).xy;
         vec2 dx = ownPos - neighborPos;
         vec2 dv = ownVel - neighborVel;
-        float d = length(dx);
+        float d = length(dx) + eta;
         float dotDxDv = dot(dx, dv);
         if (d < collisionDistance && dotDxDv < 0.) {
           collidedMass += neighborMass;

@@ -530,6 +530,7 @@ export const updateVelocityGPU = (
     params.particleRestitution
   );
 
+  gl.uniform1f(gl.getUniformLocation(program, 'eta'), params.eta);
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
