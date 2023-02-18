@@ -12,11 +12,6 @@ import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
 import {renderWebGL} from './renderWebGL';
 
-const url = new URL(document.location.href);
-
-type Mode = 'cpu' | 'webgl';
-const MODE = url.searchParams.has('cpu') ? 'cpu' : ('webgl' as Mode);
-
 type RunnerState = {
   running: boolean;
   step: boolean;
@@ -79,7 +74,7 @@ const frame = (
   updatePointer(realDt);
 
   if (runnerState.running || runnerState.step) {
-    if (MODE === 'cpu') {
+    if (params.mode === 'cpu') {
       updateSimulation(state, params, dt);
     } else {
       const gl = canvas.getContext('webgl2');
@@ -88,7 +83,7 @@ const frame = (
     runnerState.step = false;
   }
 
-  if (MODE === 'cpu') {
+  if (params.mode === 'cpu') {
     const ctx = canvas.getContext('2d');
     renderCanvas2D(ctx, state, params);
   } else {
@@ -98,10 +93,11 @@ const frame = (
 };
 
 const init = () => {
+  const params: Params = makeDefaultParams();
   const canvas = document.createElement('canvas');
 
   let gl: WebGL2RenderingContext | null = null;
-  if (MODE === 'webgl') {
+  if (params.mode === 'webgl') {
     gl = canvas.getContext('webgl2');
     if (!gl) {
       throw new Error('Failed to get WebGL2 context');
@@ -118,11 +114,9 @@ const init = () => {
     tLast: Date.now(),
   };
 
-  const n = Number.parseInt(url.searchParams.get('n') ?? '1000');
-  const params: Params = makeDefaultParams({n});
-  const state: State = allocateState({n});
+  const state: State = allocateState({n: params.n});
   const gpuState: GPUState | null = gl
-    ? allocateGPUState({gl, n, params})
+    ? allocateGPUState({gl, n: params.n, params})
     : null;
 
   document.getElementById('container')!.appendChild(canvas);

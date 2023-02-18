@@ -1,5 +1,7 @@
 export type PrimaryParams = {
   dimension: 2;
+  get mode(): 'cpu' | 'webgl';
+  get n(): number;
   particleRadius: number;
   viscosity: number;
   stiffness: number;
@@ -55,10 +57,21 @@ const scaleByN = (
   };
 };
 
-export const makeDefaultParams = ({n}: {n: number}): Params =>
-  withDerived(
+const searchParams = new URL(document.location.href).searchParams;
+
+export const makeDefaultParams = (): Params => {
+  const n = searchParams.has('n')
+    ? Number.parseInt(searchParams.get('n'))
+    : 1000;
+  return withDerived(
     scaleByN(500, n, {
       dimension: 2,
+      get mode() {
+        return searchParams.has('cpu') ? 'cpu' : 'webgl';
+      },
+      get n() {
+        return n;
+      },
       particleRadius: 0.01,
       viscosity: 0.0015,
       stiffness: 1.0,
@@ -72,3 +85,4 @@ export const makeDefaultParams = ({n}: {n: number}): Params =>
       wallRestitution: 0.4,
     })
   );
+};

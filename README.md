@@ -16,11 +16,7 @@ runs almost entirely in WebGL2!
 - `s`: step forward in time (use while stopped)
 - `r`: reset
 - `click and drag`: touch fluid
-
-secret url parameters:
-
-- `?n=500`: set the number of particles
-- `?cpu`: run the CPU/Canvas2D simulator (slower!)
+- click `settings` for some tweakable parameters!
 
 ## references
 
