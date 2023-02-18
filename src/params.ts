@@ -60,7 +60,7 @@ export const makeDefaultParams = ({n}: {n: number}): Params =>
     scaleByN(500, n, {
       dimension: 2,
       particleRadius: 0.01,
-      viscosity: 0.002,
+      viscosity: 0.0015,
       stiffness: 1.0,
       restDensity: 3000,
       hSmoothing: 0.05,

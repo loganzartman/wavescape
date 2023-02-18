@@ -118,7 +118,7 @@ const init = () => {
     tLast: Date.now(),
   };
 
-  const n = Number.parseInt(url.searchParams.get('n') ?? '500');
+  const n = Number.parseInt(url.searchParams.get('n') ?? '1000');
   const params: Params = makeDefaultParams({n});
   const state: State = allocateState({n});
   const gpuState: GPUState | null = gl
