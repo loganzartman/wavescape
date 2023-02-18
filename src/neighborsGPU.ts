@@ -127,8 +127,8 @@ const updateKeyIndexPairs = (
   );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
-    params.cellSize,
-    params.cellSize
+    params.cellWidth,
+    params.cellHeight
   );
 
   gl.bindFramebuffer(

@@ -1,16 +1,21 @@
 export type PrimaryParams = {
-  dimension: number;
+  dimension: 2;
   particleRadius: number;
   viscosity: number;
   stiffness: number;
   restDensity: number;
   hSmoothing: number;
-  cellSize: number;
+  worldWidth: number;
+  worldHeight: number;
+  cellResolutionX: number;
+  cellResolutionY: number;
 };
 
 export type DerivedParams = {
   get eta(): number;
   get sigma(): number;
+  get cellWidth(): number;
+  get cellHeight(): number;
 };
 
 export type Params = PrimaryParams & DerivedParams;
@@ -22,6 +27,12 @@ export const withDerived = (params: PrimaryParams): Params => ({
   },
   get sigma() {
     return 40 / (7 * Math.PI * this.hSmoothing ** 2);
+  },
+  get cellWidth() {
+    return this.worldWidth / this.cellResolutionX;
+  },
+  get cellHeight() {
+    return this.worldHeight / this.cellResolutionY;
   },
 });
 
@@ -47,6 +58,9 @@ export const makeDefaultParams = ({n}: {n: number}): Params =>
       stiffness: 1.0,
       restDensity: 3000,
       hSmoothing: 0.05,
-      cellSize: 0.1,
+      worldWidth: 1,
+      worldHeight: 1,
+      cellResolutionX: 40,
+      cellResolutionY: 40,
     })
   );

@@ -202,8 +202,8 @@ export const updateDensityGPU = (
   );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
-    params.cellSize,
-    params.cellSize
+    params.cellWidth,
+    params.cellHeight
   );
   gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
   gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
@@ -282,8 +282,8 @@ export const updateFPressureGPU = (
   );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
-    params.cellSize,
-    params.cellSize
+    params.cellWidth,
+    params.cellHeight
   );
   gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
   gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
@@ -376,8 +376,8 @@ export const updateVelocityGuessGPU = (
   );
   gl.uniform2f(
     gl.getUniformLocation(program, 'cellSize'),
-    params.cellSize,
-    params.cellSize
+    params.cellWidth,
+    params.cellHeight
   );
   gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
   gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
