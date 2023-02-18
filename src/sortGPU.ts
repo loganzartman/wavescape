@@ -111,6 +111,7 @@ export const sortOddEvenMerge = (
     textureW,
     textureH
   );
+  gl.uniform1i(gl.getUniformLocation(program, 'n'), n);
   const inputSamplerLoc = gl.getUniformLocation(program, 'inputSampler');
   const stageWidthLoc = gl.getUniformLocation(program, 'stageWidth');
   const compareWidthLoc = gl.getUniformLocation(program, 'compareWidth');

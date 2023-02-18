@@ -5,6 +5,7 @@ precision highp int;
 
 uniform isampler2D inputSampler;
 uniform ivec2 resolution;
+uniform int n;
 uniform int stageWidth;
 uniform int compareWidth;
 
@@ -39,7 +40,6 @@ void main() {
   int sw2 = stageWidth * 2;
   int lower = (i / sw2) * sw2;
   int upper = lower + sw2;
-  int n = resolution.x * resolution.y;
   if (j < lower || j >= upper || j >= n) {
     // pair is not in bounds; simply copy own value
     result = vi;
