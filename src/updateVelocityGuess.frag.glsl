@@ -21,6 +21,9 @@ uniform float eta;
 uniform float viscosity;
 uniform float particleRadius;
 uniform float dt;
+uniform vec2 pointerPos;
+uniform vec2 pointerVel;
+uniform int pointerDown;
 
 out vec4 velocityGuessOut;
 
@@ -124,7 +127,9 @@ void main() {
     fWall.y -= kWall * (ownPos.y - (1. - wallSize));
   }
 
-  vec2 fExt = fGrav + fWall;
+  vec2 fPointer = float(pointerDown) * 20. * pointerVel * (1. - min(vec2(1), length(ownPos - pointerPos) / 0.1));
+
+  vec2 fExt = fGrav + fWall + fPointer;
 
   vec2 velocityGuess = ownVel + (dt / ownMass) * (fViscosity + fExt);
 

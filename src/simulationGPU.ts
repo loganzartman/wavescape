@@ -9,6 +9,7 @@ import updateDensityFrag from './updateDensity.frag.glsl';
 import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
 import updateFPressureFrag from './updateFPressure.frag.glsl';
 import {updateNeighborsGPU} from './neighborsGPU';
+import {getPointerDown, getPointerPos, getPointerVel} from './pointer';
 
 const DEBUG = false;
 
@@ -388,6 +389,12 @@ export const updateVelocityGuessGPU = (
     params.particleRadius
   );
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
+  gl.uniform2fv(gl.getUniformLocation(program, 'pointerPos'), getPointerPos());
+  gl.uniform2fv(gl.getUniformLocation(program, 'pointerVel'), getPointerVel());
+  gl.uniform1i(
+    gl.getUniformLocation(program, 'pointerDown'),
+    Number(getPointerDown())
+  );
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.write.framebuffer);
   gl.disable(gl.BLEND);

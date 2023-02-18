@@ -33,6 +33,12 @@ export const screenToWorld = (x: number, y: number) => {
   return [worldX, worldY];
 };
 
+export const getPointerPos = () => [pointerX, pointerY];
+
+export const getPointerVel = () => [pointerDx, pointerDy];
+
+export const getPointerDown = () => pointerDown;
+
 export const initPointer = () => {
   addEventListener(
     'pointerdown',
