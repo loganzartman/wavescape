@@ -12,8 +12,10 @@ import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
 import {renderWebGL} from './renderWebGL';
 
+const url = new URL(document.location.href);
+
 type Mode = 'cpu' | 'webgl';
-const MODE = 'webgl' as Mode;
+const MODE = url.searchParams.has('cpu') ? 'cpu' : ('webgl' as Mode);
 
 type RunnerState = {
   running: boolean;
@@ -116,7 +118,7 @@ const init = () => {
     tLast: Date.now(),
   };
 
-  const n = 500;
+  const n = Number.parseInt(url.searchParams.get('n') ?? '500');
   const params: Params = makeDefaultParams({n});
   const state: State = allocateState({n});
   const gpuState: GPUState | null = gl
