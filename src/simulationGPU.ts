@@ -478,14 +478,58 @@ export const updateVelocityGPU = (
   gl.bindVertexArray(quadVAO);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocityGuess.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'velocityGuessSampler'), 0);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
   gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 1);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
   gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 3);
+  gl.activeTexture(gl.TEXTURE4);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 4);
+  gl.activeTexture(gl.TEXTURE5);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.fPressure.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'fPressureSampler'), 2);
+  gl.uniform1i(gl.getUniformLocation(program, 'fPressureSampler'), 5);
+  gl.activeTexture(gl.TEXTURE6);
+  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocityGuess.read.texture);
+  gl.uniform1i(gl.getUniformLocation(program, 'velocityGuessSampler'), 6);
+
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'keyParticleResolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'cellResolution'),
+    params.cellResolutionX,
+    params.cellResolutionY
+  );
+  gl.uniform2i(
+    gl.getUniformLocation(program, 'resolution'),
+    gpuState.dataW,
+    gpuState.dataH
+  );
+  gl.uniform2f(
+    gl.getUniformLocation(program, 'cellSize'),
+    params.cellWidth,
+    params.cellHeight
+  );
+  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
+  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
+  gl.uniform1f(
+    gl.getUniformLocation(program, 'collisionDistance'),
+    params.collisionDistance
+  );
+  gl.uniform1f(
+    gl.getUniformLocation(program, 'particleRestitution'),
+    params.particleRestitution
+  );
+
   gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
