@@ -96,8 +96,8 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
     let dvxCollision = 0;
     let dvyCollision = 0;
     let collidedMass = 0;
-    const dCol = params.particleRadius;
-    const restitution = 0.9;
+    const dCol = params.collisionDistance;
+    const restitution = params.particleRestitution;
     forEachNeighbor(state, params, i, (j) => {
       const dx = state.position[i * 2 + 0] - state.position[j * 2 + 0];
       const dy = state.position[i * 2 + 1] - state.position[j * 2 + 1];

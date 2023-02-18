@@ -9,6 +9,8 @@ export type PrimaryParams = {
   worldHeight: number;
   cellResolutionX: number;
   cellResolutionY: number;
+  particleRestitution: number;
+  wallRestitution: number;
 };
 
 export type DerivedParams = {
@@ -16,6 +18,7 @@ export type DerivedParams = {
   get sigma(): number;
   get cellWidth(): number;
   get cellHeight(): number;
+  get collisionDistance(): number;
 };
 
 export type Params = PrimaryParams & DerivedParams;
@@ -33,6 +36,9 @@ export const withDerived = (params: PrimaryParams): Params => ({
   },
   get cellHeight() {
     return this.worldHeight / this.cellResolutionY;
+  },
+  get collisionDistance() {
+    return this.particleRadius; // TODO: based on rest density
   },
 });
 
@@ -62,5 +68,7 @@ export const makeDefaultParams = ({n}: {n: number}): Params =>
       worldHeight: 1,
       cellResolutionX: 40,
       cellResolutionY: 40,
+      particleRestitution: 0.9,
+      wallRestitution: 0.4,
     })
   );
