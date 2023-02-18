@@ -60,7 +60,7 @@ export const makeDefaultParams = ({n}: {n: number}): Params =>
       hSmoothing: 0.05,
       worldWidth: 1,
       worldHeight: 1,
-      cellResolutionX: 40,
-      cellResolutionY: 40,
+      cellResolutionX: 16,
+      cellResolutionY: 16,
     })
   );

@@ -6,7 +6,7 @@ precision highp isampler2D;
 
 uniform isampler2D keyParticleSampler;
 uniform ivec2 keyParticleResolution;
-uniform ivec2 tableResolution;
+uniform ivec2 cellResolution;
 
 flat out int keyParticleIndex;
 
@@ -19,10 +19,10 @@ void main() {
   int key = texelFetch(keyParticleSampler, kpTexCoord, 0).r;
 
   ivec2 outputTexCoord = ivec2(
-    key % tableResolution.x + 1, 
-    key / tableResolution.x + 1
+    key % cellResolution.x + 1, 
+    key / cellResolution.x + 1
   );
-  vec2 clipCoord = vec2(outputTexCoord) / vec2(tableResolution) * 2. - 1.;
+  vec2 clipCoord = vec2(outputTexCoord) / vec2(cellResolution) * 2. - 1.;
 
   gl_Position = vec4(clipCoord, 0., 1.);
   gl_PointSize = 1.0;

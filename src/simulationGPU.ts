@@ -191,9 +191,9 @@ export const updateDensityGPU = (
     gpuState.dataH
   );
   gl.uniform2i(
-    gl.getUniformLocation(program, 'neighborsTableResolution'),
-    gpuState.dataW,
-    gpuState.dataH
+    gl.getUniformLocation(program, 'cellResolution'),
+    params.cellResolutionX,
+    params.cellResolutionY
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'resolution'),
@@ -271,9 +271,9 @@ export const updateFPressureGPU = (
     gpuState.dataH
   );
   gl.uniform2i(
-    gl.getUniformLocation(program, 'neighborsTableResolution'),
-    gpuState.dataW,
-    gpuState.dataH
+    gl.getUniformLocation(program, 'cellResolution'),
+    params.cellResolutionX,
+    params.cellResolutionY
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'resolution'),
@@ -365,9 +365,9 @@ export const updateVelocityGuessGPU = (
     gpuState.dataH
   );
   gl.uniform2i(
-    gl.getUniformLocation(program, 'neighborsTableResolution'),
-    gpuState.dataW,
-    gpuState.dataH
+    gl.getUniformLocation(program, 'cellResolution'),
+    params.cellResolutionX,
+    params.cellResolutionY
   );
   gl.uniform2i(
     gl.getUniformLocation(program, 'resolution'),

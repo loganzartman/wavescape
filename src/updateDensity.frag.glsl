@@ -10,8 +10,8 @@ uniform sampler2D neighborsTableSampler;
 uniform sampler2D positionSampler;
 uniform sampler2D massSampler;
 uniform ivec2 keyParticleResolution;
-uniform ivec2 neighborsTableResolution;
 uniform ivec2 resolution;
+uniform ivec2 cellResolution;
 uniform vec2 cellSize;
 uniform float hSmoothing;
 uniform float sigma;
@@ -30,13 +30,12 @@ float W(vec2 dx) {
   }
 }
 
-ivec2 posToCell(vec2 pos, vec2 cellSize) {
-  return ivec2(floor(pos / cellSize));
+int cellKey(ivec2 cellPos) {
+  return cellPos.y * cellResolution.x + cellPos.x;
 }
 
-int cellHash(ivec2 cellPos, int tableSize) {
-  int hash = (cellPos.x * 73856093) ^ (cellPos.y * 19349663);
-  return hash % tableSize;
+ivec2 posToCell(vec2 pos) {
+  return max(ivec2(0), min(cellResolution - ivec2(1), ivec2(floor(pos / cellSize))));
 }
 
 void main() {
@@ -47,13 +46,13 @@ void main() {
 
   float density = ownMass * W(vec2(0.));
 
-  int tableSize = neighborsTableResolution.x * neighborsTableResolution.y;
-  ivec2 c0 = posToCell(ownPos - vec2(hSmoothing), cellSize);
-  ivec2 c1 = posToCell(ownPos + vec2(hSmoothing), cellSize);
+  int tableSize = cellResolution.x * cellResolution.y;
+  ivec2 c0 = posToCell(ownPos - vec2(hSmoothing));
+  ivec2 c1 = posToCell(ownPos + vec2(hSmoothing));
   for (int cx = c0.x; cx <= c1.x; ++cx) {
     for (int cy = c0.y; cy <= c1.y; ++cy) {
-      int hash = cellHash(ivec2(cx, cy), tableSize);
-      ivec2 ntTexCoord = ivec2(hash % neighborsTableResolution.x, hash / neighborsTableResolution.x);
+      int hash = cellKey(ivec2(cx, cy));
+      ivec2 ntTexCoord = ivec2(hash % cellResolution.x, hash / cellResolution.x);
       ivec2 startCount = ivec2(texelFetch(neighborsTableSampler, ntTexCoord, 0).xy);
       int start = startCount.x;
       int count = startCount.y;

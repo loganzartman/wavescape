@@ -1,4 +1,5 @@
 import {createTexture2D, PingPongTexture, RenderTexture} from './gl';
+import {Params} from './params';
 import {dataTextureSize} from './util';
 
 export type PrimaryState = {
@@ -53,9 +54,11 @@ export const allocateState = ({n}: {n: number}): State => {
 export const allocateGPUState = ({
   n,
   gl,
+  params,
 }: {
   n: number;
   gl: WebGL2RenderingContext;
+  params: Params;
 }): GPUState => {
   const dataW = dataTextureSize(n);
   const dataH = dataTextureSize(n);
@@ -88,7 +91,11 @@ export const allocateGPUState = ({
   );
   const neighborsTable = new RenderTexture(gl, () =>
     // this has to be a float texture to support blending
-    createTexture2D(gl, {...base, internalFormat: gl.RG32F})
+    createTexture2D(gl, {
+      width: params.cellResolutionX,
+      height: params.cellResolutionY,
+      internalFormat: gl.RG32F,
+    })
   );
 
   return {
