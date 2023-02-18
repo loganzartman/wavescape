@@ -1,5 +1,6 @@
 #version 300 es
 
+uniform mat4 projection;
 uniform sampler2D positionSampler;
 uniform sampler2D velocitySampler;
 uniform sampler2D densitySampler;
@@ -19,8 +20,6 @@ void main() {
   float density = texelFetch(densitySampler, texCoord, 0).x;
 
   vec2 vertexPos = pos + circleOffset * particleRadius;
-  vec2 clipPos = vertexPos * 2. - 1.;
-  clipPos.y = -clipPos.y;
-  gl_Position = vec4(clipPos, 0., 1.);
+  gl_Position = vec4(projection * vec4(vertexPos, 0., 1.));
   color = vec4(vel * 2. + 0.5, density, 1.);  
 }

@@ -2,6 +2,7 @@ import {createBuffer, createProgram, createShader, createVAO} from './gl';
 import {Params} from './params';
 import {GPUState} from './state';
 import {memoize} from './util';
+import {mat4} from 'gl-matrix';
 import drawParticlesVert from './drawParticles.vert.glsl';
 import drawParticlesFrag from './drawParticles.frag.glsl';
 
@@ -54,6 +55,17 @@ export const renderWebGL = (
 
   gl.useProgram(program);
   gl.bindVertexArray(circleVAO);
+
+  const dim = Math.min(gl.canvas.width, gl.canvas.height);
+  const projection = mat4.create();
+  const hOffset = ((gl.canvas.width - dim) / dim) * 0.5;
+  const vOffset = ((gl.canvas.height - dim) / dim) * 0.5;
+  mat4.ortho(projection, -hOffset, 1 + hOffset, 1 + vOffset, -vOffset, -1, 1);
+  gl.uniformMatrix4fv(
+    gl.getUniformLocation(program, 'projection'),
+    false,
+    projection
+  );
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);

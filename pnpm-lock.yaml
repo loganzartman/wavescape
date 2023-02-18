@@ -6,6 +6,7 @@ specifiers:
   '@tweakpane/core': ^1.1.4
   eslint: ^8.27.0
   eslint-plugin-react: ^7.31.10
+  gl-matrix: ^3.4.3
   parcel: ^2.7.0
   prettier: ^2.7.1
   process: ^0.11.10
@@ -14,6 +15,7 @@ specifiers:
   tweakpane: ^3.1.4
 
 dependencies:
+  gl-matrix: 3.4.3
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   tweakpane: 3.1.4
@@ -1632,6 +1634,10 @@ packages:
       call-bind: 1.0.2
       get-intrinsic: 1.2.0
     dev: true
+
+  /gl-matrix/3.4.3:
+    resolution: {integrity: sha512-wcCp8vu8FT22BnvKVPjXa/ICBWRq/zjFfdofZy1WSpQZpphblv12/bOQLBC1rMM7SGOFS9ltVmKOHil5+Ml7gA==}
+    dev: false
 
   /glob-parent/6.0.2:
     resolution: {integrity: sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==}
