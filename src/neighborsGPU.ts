@@ -5,8 +5,10 @@ import {GPUState} from './state';
 import {groupNComponents, memoize} from './util';
 import {Params} from './params';
 import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
-import updateStartIndexVert from './updateStartIndex.vert.glsl';
-import updateStartIndexFrag from './updateStartIndex.frag.glsl';
+import {
+  updateStartIndexVs,
+  updateStartIndexFs,
+} from './shader/updateStartIndex';
 import {updateCountVs, updateCountFs} from './shader/updateCount';
 
 const DEBUG = false;
@@ -164,11 +166,11 @@ const updateKeyIndexPairs = (
 };
 
 const getUpdateStartIndexVert = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateStartIndexVert, type: gl.VERTEX_SHADER})
+  createShader(gl, {source: updateStartIndexVs, type: gl.VERTEX_SHADER})
 );
 
 const getUpdateStartIndexFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateStartIndexFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateStartIndexFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getUpdateStartIndexProgram = memoize((gl: WebGL2RenderingContext) =>
