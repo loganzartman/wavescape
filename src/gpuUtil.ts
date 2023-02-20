@@ -1,6 +1,6 @@
 import {createBuffer, createShader, createVAO} from './gl';
 import {memoize} from './util';
-import copyVertexVert from './copyVertex.vert.glsl';
+import {copyVertexVs} from './shader/copyVertex';
 
 export const getQuadBuffer = memoize((gl: WebGL2RenderingContext) =>
   createBuffer(gl, {
@@ -18,5 +18,5 @@ export const getEmptyVAO = memoize((gl: WebGL2RenderingContext) =>
 );
 
 export const getCopyVertexVert = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: copyVertexVert, type: gl.VERTEX_SHADER})
+  createShader(gl, {source: copyVertexVs, type: gl.VERTEX_SHADER})
 );
