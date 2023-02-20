@@ -2,7 +2,7 @@ import {createProgram, createShader} from './gl';
 import {GPUState, State} from './state';
 import {memoize} from './util';
 import {advectParticlesFs} from './shader/advectParticles';
-import updateVelocityFrag from './updateVelocity.frag.glsl';
+import {updateVelocityFs} from './shader/updateVelocity';
 import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import {updateDensityFs} from './shader/updateDensity';
@@ -457,7 +457,7 @@ export const advectParticlesGPU = (
 };
 
 const getUpdateVelocityFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateVelocityFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateVelocityFs, type: gl.FRAGMENT_SHADER})
 );
 const getUpdateVelocityProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
