@@ -4,7 +4,7 @@ import {sortOddEvenMerge} from './sortGPU';
 import {GPUState} from './state';
 import {groupNComponents, memoize} from './util';
 import {Params} from './params';
-import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
+import {updateKeyIndexPairsFs} from './shader/updateKeyIndexPairs';
 import {
   updateStartIndexVs,
   updateStartIndexFs,
@@ -112,7 +112,7 @@ export const updateNeighborsGPU = (
 };
 
 const getUpdateKeyIndexPairsFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateKeyIndexPairsFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateKeyIndexPairsFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getUpdateKeyIndexPairsProgram = memoize((gl: WebGL2RenderingContext) =>
