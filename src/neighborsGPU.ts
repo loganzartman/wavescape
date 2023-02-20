@@ -7,8 +7,7 @@ import {Params} from './params';
 import updateKeyIndexPairsFrag from './updateKeyIndexPairs.frag.glsl';
 import updateStartIndexVert from './updateStartIndex.vert.glsl';
 import updateStartIndexFrag from './updateStartIndex.frag.glsl';
-import updateCountVert from './updateCount.vert.glsl';
-import updateCountFrag from './updateCount.frag.glsl';
+import {updateCountVs, updateCountFs} from './shader/updateCount';
 
 const DEBUG = false;
 
@@ -218,11 +217,11 @@ const updateStartIndex = (
 };
 
 const getUpdateCountVert = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateCountVert, type: gl.VERTEX_SHADER})
+  createShader(gl, {source: updateCountVs, type: gl.VERTEX_SHADER})
 );
 
 const getUpdateCountFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateCountFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateCountFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getUpdateCountProgram = memoize((gl: WebGL2RenderingContext) =>
