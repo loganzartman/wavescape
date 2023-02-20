@@ -7,7 +7,7 @@ import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import {updateDensityFs} from './shader/updateDensity';
 import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
-import updateFPressureFrag from './updateFPressure.frag.glsl';
+import {updateFPressureFs} from './shader/updateFPressure';
 import {updateNeighborsGPU} from './neighborsGPU';
 import {getPointerDown, getPointerPos, getPointerVel} from './pointer';
 
@@ -320,7 +320,7 @@ export const updateFPressureGPU = (
 };
 
 const getUpdateFPressureFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateFPressureFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateFPressureFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getUpdateFPressureProgram = memoize((gl: WebGL2RenderingContext) =>
