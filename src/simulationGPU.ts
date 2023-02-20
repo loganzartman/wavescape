@@ -5,7 +5,7 @@ import {advectParticlesFs} from './shader/advectParticles';
 import updateVelocityFrag from './updateVelocity.frag.glsl';
 import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
-import updateDensityFrag from './updateDensity.frag.glsl';
+import {updateDensityFs} from './shader/updateDensity';
 import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
 import updateFPressureFrag from './updateFPressure.frag.glsl';
 import {updateNeighborsGPU} from './neighborsGPU';
@@ -153,7 +153,7 @@ export const copyStateFromGPU = (
 };
 
 const getUpdateDensityFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateDensityFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateDensityFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getUpdateDensityProgram = memoize((gl: WebGL2RenderingContext) =>
