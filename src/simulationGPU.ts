@@ -6,7 +6,7 @@ import {updateVelocityFs} from './shader/updateVelocity';
 import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import {updateDensityFs} from './shader/updateDensity';
-import updateVelocityGuessFrag from './updateVelocityGuess.frag.glsl';
+import {updateVelocityGuessFs} from './shader/updateVelocityGuess';
 import {updateFPressureFs} from './shader/updateFPressure';
 import {updateNeighborsGPU} from './neighborsGPU';
 import {getPointerDown, getPointerPos, getPointerVel} from './pointer';
@@ -230,7 +230,7 @@ export const updateDensityGPU = (
 };
 
 const getUpdateVelocityGuessFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateVelocityGuessFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: updateVelocityGuessFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>

@@ -24,10 +24,14 @@ export const neighborsTableSampler = new GLSLUniform(
   'neighborsTableSampler',
   'sampler2D'
 );
+export const particleRadius = new GLSLUniform('particleRadius', 'float');
 export const particleRestitution = new GLSLUniform(
   'particleRestitution',
   'float'
 );
+export const pointerDown = new GLSLUniform('pointerDown', 'int');
+export const pointerPos = new GLSLUniform('pointerPos', 'vec2');
+export const pointerVel = new GLSLUniform('pointerVel', 'vec2');
 export const positionSampler = new GLSLUniform('positionSampler', 'sampler2D');
 export const resolution = new GLSLUniform('resolution', 'ivec2');
 export const restDensity = new GLSLUniform('restDensity', 'float');
@@ -38,3 +42,4 @@ export const velocityGuessSampler = new GLSLUniform(
   'sampler2D'
 );
 export const velocitySampler = new GLSLUniform('velocitySampler', 'sampler2D');
+export const viscosity = new GLSLUniform('viscosity', 'float');
