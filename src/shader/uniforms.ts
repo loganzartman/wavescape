@@ -33,6 +33,7 @@ export const pointerDown = new GLSLUniform('pointerDown', 'int');
 export const pointerPos = new GLSLUniform('pointerPos', 'vec2');
 export const pointerVel = new GLSLUniform('pointerVel', 'vec2');
 export const positionSampler = new GLSLUniform('positionSampler', 'sampler2D');
+export const projection = new GLSLUniform('projection', 'mat4');
 export const resolution = new GLSLUniform('resolution', 'ivec2');
 export const restDensity = new GLSLUniform('restDensity', 'float');
 export const sigma = new GLSLUniform('sigma', 'float');

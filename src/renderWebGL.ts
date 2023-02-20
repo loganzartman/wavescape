@@ -3,8 +3,7 @@ import {Params} from './params';
 import {GPUState} from './state';
 import {memoize} from './util';
 import {mat4} from 'gl-matrix';
-import drawParticlesVert from './drawParticles.vert.glsl';
-import drawParticlesFrag from './drawParticles.frag.glsl';
+import {drawParticlesVs, drawParticlesFs} from './shader/drawParticles';
 
 const getCircleVertexBuffer = memoize(
   (gl: WebGL2RenderingContext, vertexCount: number) =>
@@ -27,11 +26,11 @@ const getCircleVAO = memoize(
 );
 
 const getDrawParticlesVert = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: drawParticlesVert, type: gl.VERTEX_SHADER})
+  createShader(gl, {source: drawParticlesVs, type: gl.VERTEX_SHADER})
 );
 
 const getDrawParticlesFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: drawParticlesFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: drawParticlesFs, type: gl.FRAGMENT_SHADER})
 );
 
 const getDrawParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
