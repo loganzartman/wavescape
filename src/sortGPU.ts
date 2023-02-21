@@ -5,16 +5,8 @@ import {
   PingPongTexture,
 } from './gl';
 import {memoize, nextPowerOf2, shuffle, time} from './util';
-import sortEvenOddFrag from './sortEvenOdd.frag.glsl';
-import sortOddEvenMergeFrag from './sortOddEvenMerge.frag.glsl';
+import {sortOddEvenMergeFs} from './shader/sortOddEvenMerge';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
-
-const getSortEvenOddFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: sortEvenOddFrag, type: gl.FRAGMENT_SHADER})
-);
-const getSortEvenOddProgram = memoize((gl: WebGL2RenderingContext) =>
-  createProgram(gl, {shaders: [getCopyVertexVert(gl), getSortEvenOddFrag(gl)]})
-);
 
 const copyToTextureInt = (
   gl: WebGL2RenderingContext,
@@ -42,43 +34,8 @@ const copyFromTextureInt = (
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
-export const sortEvenOdd = (
-  gl: WebGL2RenderingContext,
-  texture: PingPongTexture,
-  width: number,
-  height: number
-) => {
-  const program = getSortEvenOddProgram(gl);
-
-  gl.useProgram(program);
-  gl.bindVertexArray(getQuadVAO(gl));
-
-  gl.viewport(0, 0, width, height);
-  gl.uniform2i(gl.getUniformLocation(program, 'resolution'), width, height);
-  const inputSamplerLoc = gl.getUniformLocation(program, 'inputSampler');
-  const oddStepLoc = gl.getUniformLocation(program, 'oddStep');
-
-  for (let i = 0; i < width * height; ++i) {
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture.read.texture);
-    gl.uniform1i(inputSamplerLoc, 0);
-    gl.uniform1i(oddStepLoc, i % 2);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.write.framebuffer);
-
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-    texture.swap();
-  }
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.bindVertexArray(null);
-  gl.useProgram(null);
-};
-
 const getSortOddEvenMergeFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: sortOddEvenMergeFrag, type: gl.FRAGMENT_SHADER})
+  createShader(gl, {source: sortOddEvenMergeFs, type: gl.FRAGMENT_SHADER})
 );
 const getSortOddEvenMergeProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
