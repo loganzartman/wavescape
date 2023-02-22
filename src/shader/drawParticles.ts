@@ -5,6 +5,7 @@ import {
   positionSampler,
   projection,
   resolution,
+  restDensity,
   velocitySampler,
 } from './uniforms';
 
@@ -22,7 +23,7 @@ void main() {
 
   vec2 vertexPos = pos + circleOffset * ${particleRadius};
   gl_Position = ${projection} * vec4(vertexPos, 0., 1.);
-  color = vec4(vel * 2. + 0.5, density, 1.);  
+  color = vec4(vel * 2. + 0.5, density / (${restDensity} * 2.0), 1.);  
 }
 `);
 
