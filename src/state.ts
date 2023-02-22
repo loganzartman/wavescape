@@ -1,4 +1,4 @@
-import {createTexture2D, PingPongTexture, RenderTexture} from './gl';
+import {createTexture2D, PingPongTexture, RenderTexture} from './gl/gl';
 import {Params} from './params';
 import {dataTextureSize} from './util';
 

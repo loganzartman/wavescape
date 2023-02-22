@@ -1,4 +1,4 @@
-import {createProgram, createShader} from './gl';
+import {createProgram, createShader} from './gl/gl';
 import {getCopyVertexVert, getEmptyVAO, getQuadVAO} from './gpuUtil';
 import {sortOddEvenMerge} from './sortGPU';
 import {GPUState} from './state';
@@ -10,15 +10,17 @@ import {
   updateStartIndexFs,
 } from './shader/updateStartIndex';
 import {updateCountVs, updateCountFs} from './shader/updateCount';
+import {UniformContext} from './gl/UniformContext';
 
 const DEBUG = false;
 
 export const updateNeighborsGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  params: Params,
+  uniforms: UniformContext
 ) => {
-  updateKeyIndexPairs(gl, gpuState, params);
+  updateKeyIndexPairs(gl, gpuState, uniforms);
 
   if (DEBUG) {
     console.log('updated key/index pairs');
@@ -68,7 +70,7 @@ export const updateNeighborsGPU = (
     console.log(groupNComponents(Array.from(tmp), 2));
   }
 
-  updateStartIndex(gl, gpuState, params);
+  updateStartIndex(gl, gpuState, params, uniforms);
 
   if (DEBUG) {
     console.log('updated start indices');
@@ -89,7 +91,7 @@ export const updateNeighborsGPU = (
     console.log(groupNComponents(Array.from(tmp), 2));
   }
 
-  updateCount(gl, gpuState, params);
+  updateCount(gl, gpuState, params, uniforms);
 
   if (DEBUG) {
     console.log('updated counts');
@@ -124,7 +126,7 @@ const getUpdateKeyIndexPairsProgram = memoize((gl: WebGL2RenderingContext) =>
 const updateKeyIndexPairs = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  uniforms: UniformContext
 ) => {
   // write a texture where each ivec2 element contains a cell index and a particle in that cell
   const program = getUpdateKeyIndexPairsProgram(gl);
@@ -136,21 +138,7 @@ const updateKeyIndexPairs = (
   gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
 
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
-  gl.uniform2f(
-    gl.getUniformLocation(program, 'cellSize'),
-    params.cellWidth,
-    params.cellHeight
-  );
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(
     gl.FRAMEBUFFER,
@@ -182,7 +170,8 @@ const getUpdateStartIndexProgram = memoize((gl: WebGL2RenderingContext) =>
 const updateStartIndex = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  params: Params,
+  uniforms: UniformContext
 ) => {
   const program = getUpdateStartIndexProgram(gl);
   gl.useProgram(program);
@@ -194,16 +183,8 @@ const updateStartIndex = (
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
+
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
   gl.clearColor(gpuState.n, 0, 0, 0);
@@ -235,7 +216,8 @@ const getUpdateCountProgram = memoize((gl: WebGL2RenderingContext) =>
 const updateCount = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  params: Params,
+  uniforms: UniformContext
 ) => {
   const program = getUpdateCountProgram(gl);
   gl.useProgram(program);
@@ -247,16 +229,8 @@ const updateCount = (
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
+
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
   gl.enable(gl.BLEND);

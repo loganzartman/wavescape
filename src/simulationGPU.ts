@@ -1,4 +1,4 @@
-import {createProgram, createShader} from './gl';
+import {createProgram, createShader} from './gl/gl';
 import {GPUState, State} from './state';
 import {memoize} from './util';
 import {advectParticlesFs} from './shader/advectParticles';
@@ -10,6 +10,27 @@ import {updateVelocityGuessFs} from './shader/updateVelocityGuess';
 import {updateFPressureFs} from './shader/updateFPressure';
 import {updateNeighborsGPU} from './neighborsGPU';
 import {getPointerDown, getPointerPos, getPointerVel} from './pointer';
+import {UniformContext} from './gl/UniformContext';
+import {
+  cellResolution,
+  cellSize,
+  collisionDistance,
+  dt,
+  eta,
+  hSmoothing,
+  keyParticleResolution,
+  n,
+  particleRadius,
+  particleRestitution,
+  pointerDown,
+  pointerPos,
+  pointerVel,
+  resolution,
+  restDensity,
+  sigma,
+  stiffness,
+  viscosity,
+} from './shader/uniforms';
 
 const DEBUG = false;
 
@@ -165,7 +186,7 @@ const getUpdateDensityProgram = memoize((gl: WebGL2RenderingContext) =>
 export const updateDensityGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  uniforms: UniformContext
 ) => {
   const program = getUpdateDensityProgram(gl);
   const quadVAO = getQuadVAO(gl);
@@ -186,28 +207,7 @@ export const updateDensityGPU = (
   gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 3);
 
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2f(
-    gl.getUniformLocation(program, 'cellSize'),
-    params.cellWidth,
-    params.cellHeight
-  );
-  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
-  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.write.framebuffer);
   gl.disable(gl.BLEND);
@@ -242,7 +242,7 @@ const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>
 export const updateFPressureGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  uniforms: UniformContext
 ) => {
   const program = getUpdateFPressureProgram(gl);
   const quadVAO = getQuadVAO(gl);
@@ -266,38 +266,7 @@ export const updateFPressureGPU = (
   gl.bindTexture(gl.TEXTURE_2D, gpuState.density.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 4);
 
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2f(
-    gl.getUniformLocation(program, 'cellSize'),
-    params.cellWidth,
-    params.cellHeight
-  );
-  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
-  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
-  gl.uniform1f(gl.getUniformLocation(program, 'eta'), params.eta);
-  gl.uniform1f(gl.getUniformLocation(program, 'stiffness'), params.stiffness);
-  gl.uniform1f(
-    gl.getUniformLocation(program, 'restDensity'),
-    params.restDensity
-  );
-  gl.uniform1f(
-    gl.getUniformLocation(program, 'particleRadius'),
-    params.particleRadius
-  );
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.write.framebuffer);
   gl.disable(gl.BLEND);
@@ -332,8 +301,7 @@ const getUpdateFPressureProgram = memoize((gl: WebGL2RenderingContext) =>
 export const updateVelocityGuessGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params,
-  dt: number
+  uniforms: UniformContext
 ) => {
   const program = getUpdateVelocityGuessProgram(gl);
   const quadVAO = getQuadVAO(gl);
@@ -360,41 +328,7 @@ export const updateVelocityGuessGPU = (
   gl.bindTexture(gl.TEXTURE_2D, gpuState.density.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 5);
 
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2f(
-    gl.getUniformLocation(program, 'cellSize'),
-    params.cellWidth,
-    params.cellHeight
-  );
-  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
-  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
-  gl.uniform1f(gl.getUniformLocation(program, 'eta'), params.eta);
-  gl.uniform1f(gl.getUniformLocation(program, 'viscosity'), params.viscosity);
-  gl.uniform1f(
-    gl.getUniformLocation(program, 'particleRadius'),
-    params.particleRadius
-  );
-  gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
-  gl.uniform2fv(gl.getUniformLocation(program, 'pointerPos'), getPointerPos());
-  gl.uniform2fv(gl.getUniformLocation(program, 'pointerVel'), getPointerVel());
-  gl.uniform1i(
-    gl.getUniformLocation(program, 'pointerDown'),
-    Number(getPointerDown())
-  );
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.write.framebuffer);
   gl.disable(gl.BLEND);
@@ -429,8 +363,7 @@ const getAdvectParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
 export const advectParticlesGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params,
-  dt: number
+  uniforms: UniformContext
 ) => {
   const program = getAdvectParticlesProgram(gl);
   const quadVAO = getQuadVAO(gl);
@@ -444,7 +377,8 @@ export const advectParticlesGPU = (
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 1);
-  gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
+
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.write.framebuffer);
   gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
@@ -468,8 +402,7 @@ const getUpdateVelocityProgram = memoize((gl: WebGL2RenderingContext) =>
 export const updateVelocityGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params,
-  dt: number
+  uniforms: UniformContext
 ) => {
   const program = getUpdateVelocityProgram(gl);
   const quadVAO = getQuadVAO(gl);
@@ -499,39 +432,7 @@ export const updateVelocityGPU = (
   gl.bindTexture(gl.TEXTURE_2D, gpuState.velocityGuess.read.texture);
   gl.uniform1i(gl.getUniformLocation(program, 'velocityGuessSampler'), 6);
 
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'keyParticleResolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'cellResolution'),
-    params.cellResolutionX,
-    params.cellResolutionY
-  );
-  gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform2f(
-    gl.getUniformLocation(program, 'cellSize'),
-    params.cellWidth,
-    params.cellHeight
-  );
-  gl.uniform1f(gl.getUniformLocation(program, 'hSmoothing'), params.hSmoothing);
-  gl.uniform1f(gl.getUniformLocation(program, 'sigma'), params.sigma);
-  gl.uniform1f(
-    gl.getUniformLocation(program, 'collisionDistance'),
-    params.collisionDistance
-  );
-  gl.uniform1f(
-    gl.getUniformLocation(program, 'particleRestitution'),
-    params.particleRestitution
-  );
-
-  gl.uniform1f(gl.getUniformLocation(program, 'eta'), params.eta);
-  gl.uniform1f(gl.getUniformLocation(program, 'dt'), dt);
+  uniforms.apply(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
   gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
@@ -543,16 +444,48 @@ export const updateVelocityGPU = (
   gl.useProgram(null);
 };
 
+const resetUniforms = (
+  gpuState: GPUState,
+  params: Params,
+  _dt: number,
+  uniforms: UniformContext
+) => {
+  uniforms.set(cellResolution, [
+    params.cellResolutionX,
+    params.cellResolutionY,
+  ]);
+  uniforms.set(cellSize, [params.cellWidth, params.cellHeight]);
+  uniforms.set(collisionDistance, params.collisionDistance);
+  uniforms.set(dt, _dt);
+  uniforms.set(eta, params.eta);
+  uniforms.set(hSmoothing, params.hSmoothing);
+  uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(n, gpuState.n);
+  uniforms.set(particleRadius, params.particleRadius);
+  uniforms.set(particleRestitution, params.particleRestitution);
+  uniforms.set(pointerDown, Number(getPointerDown()));
+  uniforms.set(pointerPos, getPointerPos());
+  uniforms.set(pointerVel, getPointerVel());
+  uniforms.set(resolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(restDensity, params.restDensity);
+  uniforms.set(sigma, params.sigma);
+  uniforms.set(stiffness, params.stiffness);
+  uniforms.set(viscosity, params.viscosity);
+};
+
 export const updateSimulationGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
   params: Params,
   dt: number
 ) => {
-  updateNeighborsGPU(gl, gpuState, params);
-  updateDensityGPU(gl, gpuState, params);
-  updateVelocityGuessGPU(gl, gpuState, params, dt);
-  updateFPressureGPU(gl, gpuState, params);
-  updateVelocityGPU(gl, gpuState, params, dt);
-  advectParticlesGPU(gl, gpuState, params, dt);
+  const uniforms = new UniformContext();
+  resetUniforms(gpuState, params, dt, uniforms);
+
+  updateNeighborsGPU(gl, gpuState, params, uniforms);
+  updateDensityGPU(gl, gpuState, uniforms);
+  updateVelocityGuessGPU(gl, gpuState, uniforms);
+  updateFPressureGPU(gl, gpuState, uniforms);
+  updateVelocityGPU(gl, gpuState, uniforms);
+  advectParticlesGPU(gl, gpuState, uniforms);
 };

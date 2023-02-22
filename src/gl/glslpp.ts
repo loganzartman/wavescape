@@ -1,49 +1,19 @@
-class UncompiledGLSL {
-  strings: string[];
-  values: any[];
-
-  constructor(strings: string[], values: any[]) {
-    this.strings = strings;
-    this.values = values;
-  }
-}
-
-export class GLSLFragment {
-  glsl: UncompiledGLSL;
-
-  constructor(glsl: UncompiledGLSL) {
-    this.glsl = glsl;
-  }
-}
-
-export class GLSLUniform {
-  name: string;
-  type: string;
-
-  constructor(name: string, type: string) {
-    this.name = name;
-    this.type = type;
-  }
-}
-
-export class GLSLDefinition {
-  name: string;
-  definition: UncompiledGLSL;
-
-  constructor(name: string, definition: UncompiledGLSL) {
-    this.name = name;
-    this.definition = definition;
-  }
-}
-
-type GLSLReference = GLSLUniform | GLSLDefinition;
+import {
+  GLSLDefinition,
+  GLSLReference,
+  GLSLUniform,
+  UncompiledGLSL,
+} from './types';
 
 export const glsl = (
   strings: TemplateStringsArray,
   ...values: GLSLReference[]
 ) => new UncompiledGLSL(Array.from(strings), values);
 
-type Context = {uniforms: Set<GLSLUniform>; defs: Map<GLSLDefinition, string>};
+type Context = {
+  uniforms: Set<GLSLUniform<any>>;
+  defs: Map<GLSLDefinition, string>;
+};
 
 const makeContext = (): Context => ({uniforms: new Set(), defs: new Map()});
 

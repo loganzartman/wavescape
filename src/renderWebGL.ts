@@ -1,4 +1,4 @@
-import {createBuffer, createProgram, createShader, createVAO} from './gl';
+import {createBuffer, createProgram, createShader, createVAO} from './gl/gl';
 import {Params} from './params';
 import {GPUState} from './state';
 import {memoize} from './util';

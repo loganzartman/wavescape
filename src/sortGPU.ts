@@ -3,7 +3,7 @@ import {
   createShader,
   createTexture2D,
   PingPongTexture,
-} from './gl';
+} from './gl/gl';
 import {memoize, nextPowerOf2, shuffle, time} from './util';
 import {sortOddEvenMergeFs} from './shader/sortOddEvenMerge';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';

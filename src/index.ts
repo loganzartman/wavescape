@@ -6,7 +6,7 @@ import {Params, makeDefaultParams} from './params';
 import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
 import {createUi} from './tweaks';
-import {enableFloatTexture} from './gl';
+import {enableFloatTexture} from './gl/gl';
 import {testSort} from './sortGPU';
 import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';

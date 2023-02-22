@@ -1,4 +1,5 @@
-import {glsl, GLSLDefinition} from '../glslpp';
+import {GLSLDefinition} from '../gl/types';
+import {glsl} from '../gl/glslpp';
 import {cellResolution, cellSize} from './uniforms';
 
 export const posToCell = new GLSLDefinition(

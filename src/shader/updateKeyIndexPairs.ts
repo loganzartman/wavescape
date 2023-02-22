@@ -1,4 +1,4 @@
-import {compile, glsl} from '../glslpp';
+import {compile, glsl} from '../gl/glslpp';
 import {cellKey} from './cellKey';
 import {posToCell} from './posToCell';
 import {positionSampler, resolution} from './uniforms';

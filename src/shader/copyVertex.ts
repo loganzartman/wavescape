@@ -1,4 +1,4 @@
-import {compile, glsl} from '../glslpp';
+import {compile, glsl} from '../gl/glslpp';
 
 export const copyVertexVs = compile(glsl`
 in vec2 vertexPos;

@@ -1,4 +1,5 @@
-import {glsl, GLSLDefinition} from '../glslpp';
+import {GLSLDefinition} from '../gl/types';
+import {glsl} from '../gl/glslpp';
 import {cellKey} from './cellKey';
 import {posToCell} from './posToCell';
 import {
