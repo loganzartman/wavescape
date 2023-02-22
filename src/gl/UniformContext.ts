@@ -1,5 +1,17 @@
 import {memoize} from '../util';
-import {GLSLDataType, GLSLDataTypeMap, GLSLUniform} from './types';
+import {GLSLDataType, GLSLDataTypeMap, GLSLUniform} from './glsl';
+import {GLProgram} from './program';
+
+type SetTexture = {target?: number; texture: WebGLTexture};
+
+type SetUniformTypeMap = Omit<
+  GLSLDataTypeMap,
+  'sampler2D' | 'isampler2D' | 'usampler2D'
+> & {
+  sampler2D: SetTexture;
+  isampler2D: SetTexture;
+  usampler2D: SetTexture;
+};
 
 const getSetters = memoize(
   (
@@ -40,31 +52,57 @@ const getSetters = memoize(
   })
 );
 
-const setUniform = <T extends GLSLDataType>(
-  gl: WebGL2RenderingContext,
-  program: WebGLProgram,
-  uniform: GLSLUniform<T>,
-  value: GLSLDataTypeMap[T],
-  tranpose: boolean = false
-) => {
-  const transpose = false;
-  const location = gl.getUniformLocation(program, uniform.name);
-  getSetters(gl)[uniform.type](location, value, transpose);
-};
+const getMaxTextureUnits = memoize((gl: WebGL2RenderingContext) =>
+  gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+);
 
 export class UniformContext {
   values: Map<GLSLUniform<any>, any> = new Map();
 
   set<T extends GLSLDataType>(
     uniform: GLSLUniform<T>,
-    value: GLSLDataTypeMap[T]
+    value: SetUniformTypeMap[T]
   ) {
     this.values.set(uniform, value);
   }
 
-  apply(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    for (const [uniform, value] of this.values) {
-      setUniform(gl, program, uniform, value);
+  bind(gl: WebGL2RenderingContext, program: GLProgram) {
+    const maxTextureUnits = getMaxTextureUnits(gl);
+    const setters = getSetters(gl);
+    let textureId = 0;
+
+    const setUniform = <T extends GLSLDataType>(uniform: GLSLUniform<T>) => {
+      const transpose = false;
+      const location = gl.getUniformLocation(program.program, uniform.name);
+      if (
+        uniform.type === 'sampler2D' ||
+        uniform.type === 'isampler2D' ||
+        uniform.type === 'usampler2D'
+      ) {
+        if (textureId > maxTextureUnits) {
+          throw new Error(
+            `Trying to bind more texture units than available on this device (${maxTextureUnits})`
+          );
+        }
+        const value: SetTexture = this.values.get(uniform);
+        gl.activeTexture((gl as any)[`TEXTURE${textureId}`]);
+        gl.bindTexture(value.target ?? gl.TEXTURE_2D, value.texture);
+        gl.uniform1i(location, textureId);
+        ++textureId;
+      } else {
+        const value = this.values.get(uniform);
+        setters[uniform.type](location, value, transpose);
+      }
+    };
+
+    for (const uniform of program.deps.uniforms) {
+      if (this.values.has(uniform)) {
+        setUniform(uniform);
+      } else {
+        throw new Error(
+          `UniformContex lacks uniform ${uniform.type} ${uniform.name}, required by this program.`
+        );
+      }
     }
   }
 

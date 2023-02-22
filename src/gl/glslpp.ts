@@ -3,44 +3,40 @@ import {
   GLSLReference,
   GLSLUniform,
   UncompiledGLSL,
-} from './types';
+  ShaderDeps,
+  CompiledGLSL,
+  makeShaderDeps,
+} from './glsl';
 
 export const glsl = (
   strings: TemplateStringsArray,
   ...values: GLSLReference[]
 ) => new UncompiledGLSL(Array.from(strings), values);
 
-type Context = {
-  uniforms: Set<GLSLUniform<any>>;
-  defs: Map<GLSLDefinition, string>;
-};
-
-const makeContext = (): Context => ({uniforms: new Set(), defs: new Map()});
-
-const generateReference = (value: any, context: Context) => {
+const generateReference = (value: any, deps: ShaderDeps) => {
   if (value instanceof GLSLUniform) {
-    context.uniforms.add(value);
+    deps.uniforms.add(value);
     return value.name;
   }
   if (value instanceof GLSLDefinition) {
-    if (!context.defs.has(value))
-      context.defs.set(value, compileBody(value.definition, context));
+    if (!deps.defs.has(value))
+      deps.defs.set(value, compileBody(value.definition, deps));
     return value.name;
   }
   throw new Error('Unsupported reference: ' + value);
 };
 
-const generateUniforms = (context: Context) =>
-  Array.from(context.uniforms)
+const generateUniforms = (deps: ShaderDeps) =>
+  Array.from(deps.uniforms)
     .map((u) => `uniform ${u.type} ${u.name};`)
     .join('\n');
 
-const generateDefs = (context: Context) =>
-  Array.from(context.defs)
+const generateDefs = (deps: ShaderDeps) =>
+  Array.from(deps.defs)
     .map(([_, compiled]) => compiled)
     .join('\n');
 
-const compileBody = (uncompiled: UncompiledGLSL, context: Context) => {
+const compileBody = (uncompiled: UncompiledGLSL, deps: ShaderDeps) => {
   const body = [];
 
   for (let i = 0; i < uncompiled.strings.length; ++i) {
@@ -50,7 +46,7 @@ const compileBody = (uncompiled: UncompiledGLSL, context: Context) => {
       if (typeof value === 'string') {
         body.push(value);
       }
-      body.push(generateReference(value, context));
+      body.push(generateReference(value, deps));
     }
   }
 
@@ -59,12 +55,12 @@ const compileBody = (uncompiled: UncompiledGLSL, context: Context) => {
 
 export const compile = (
   uncompiled: UncompiledGLSL,
-  context: Context = makeContext()
-) => {
-  const body = compileBody(uncompiled, context);
+  deps: ShaderDeps = makeShaderDeps()
+): CompiledGLSL => {
+  const body = compileBody(uncompiled, deps);
 
-  const generatedDefs = generateDefs(context);
-  const generatedUniforms = generateUniforms(context);
+  const generatedDefs = generateDefs(deps);
+  const generatedUniforms = generateUniforms(deps);
   const precisions = [
     'precision highp sampler2D;',
     'precision highp isampler2D;',
@@ -72,11 +68,13 @@ export const compile = (
     'precision highp int;',
   ].join('\n');
 
-  return [
+  const source = [
     '#version 300 es',
     precisions,
     generatedUniforms,
     generatedDefs,
     body,
   ].join('\n');
+
+  return new CompiledGLSL(source, deps);
 };

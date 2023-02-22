@@ -47,6 +47,26 @@ export class UncompiledGLSL {
   }
 }
 
+export type ShaderDeps = {
+  uniforms: Set<GLSLUniform<any>>;
+  defs: Map<GLSLDefinition, string>;
+};
+
+export const makeShaderDeps = (): ShaderDeps => ({
+  uniforms: new Set(),
+  defs: new Map(),
+});
+
+export class CompiledGLSL {
+  source: string;
+  deps: ShaderDeps;
+
+  constructor(source: string, deps: ShaderDeps) {
+    this.source = source;
+    this.deps = deps;
+  }
+}
+
 export class GLSLFragment {
   glsl: UncompiledGLSL;
 

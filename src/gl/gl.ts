@@ -1,3 +1,6 @@
+import {GLSLUniform} from './glsl';
+import {UniformContext} from './UniformContext';
+
 export const createTexture2D = (
   gl: WebGL2RenderingContext,
   {
@@ -85,44 +88,6 @@ export const createFramebuffer = (
   return fb;
 };
 
-export const createShader = (
-  gl: WebGL2RenderingContext,
-  {source, type}: {source: string; type: number}
-): WebGLShader => {
-  const shader = gl.createShader(type);
-  if (!shader) {
-    throw new Error('Failed to create shader');
-  }
-
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    throw new Error('Error compiling shader:' + gl.getShaderInfoLog(shader));
-  }
-
-  return shader;
-};
-
-export const createProgram = (
-  gl: WebGL2RenderingContext,
-  {shaders}: {shaders: WebGLShader[]}
-): WebGLProgram => {
-  const program = gl.createProgram();
-  if (!program) {
-    throw new Error('Failed to create program');
-  }
-
-  for (const shader of shaders) {
-    gl.attachShader(program, shader);
-  }
-  gl.linkProgram(program);
-
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new Error('Error linking program:' + gl.getProgramInfoLog(program));
-  }
-  return program;
-};
-
 export const createBuffer = (
   gl: WebGL2RenderingContext,
   {data, usage = gl.STATIC_DRAW}: {data: BufferSource; usage: number}
@@ -201,13 +166,16 @@ export class PingPongTexture {
     this.write.delete();
   }
 
-  swap() {
+  swap(uniformData?: {uniforms: UniformContext; uniform: GLSLUniform<any>}) {
     const temptex = this.read.texture;
     const tempfb = this.read.framebuffer;
     this.read.texture = this.write.texture;
     this.write.texture = temptex;
     this.read.framebuffer = this.write.framebuffer;
     this.write.framebuffer = tempfb;
+    if (uniformData) {
+      uniformData.uniforms.set(uniformData.uniform, this.read.texture);
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import {GLSLDefinition} from '../gl/types';
+import {GLSLDefinition} from '../gl/glsl';
 import {glsl} from '../gl/glslpp';
 import {eta, hSmoothing, sigma} from './uniforms';
 

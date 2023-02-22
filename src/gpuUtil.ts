@@ -1,4 +1,5 @@
-import {createBuffer, createShader, createVAO} from './gl/gl';
+import {createBuffer, createVAO} from './gl/gl';
+import {createShader} from './gl/shader';
 import {memoize} from './util';
 import {copyVertexVs} from './shader/copyVertex';
 

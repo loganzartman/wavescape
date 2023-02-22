@@ -1,4 +1,5 @@
-import {createProgram, createShader} from './gl/gl';
+import {createProgram} from './gl/program';
+import {createShader} from './gl/shader';
 import {GPUState, State} from './state';
 import {memoize} from './util';
 import {advectParticlesFs} from './shader/advectParticles';
@@ -15,20 +16,28 @@ import {
   cellResolution,
   cellSize,
   collisionDistance,
+  densitySampler,
   dt,
   eta,
+  fPressureSampler,
   hSmoothing,
   keyParticleResolution,
+  keyParticleSampler,
+  massSampler,
   n,
+  neighborsTableSampler,
   particleRadius,
   particleRestitution,
   pointerDown,
   pointerPos,
   pointerVel,
+  positionSampler,
   resolution,
   restDensity,
   sigma,
   stiffness,
+  velocityGuessSampler,
+  velocitySampler,
   viscosity,
 } from './shader/uniforms';
 
@@ -191,23 +200,10 @@ export const updateDensityGPU = (
   const program = getUpdateDensityProgram(gl);
   const quadVAO = getQuadVAO(gl);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(quadVAO);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 3);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.write.framebuffer);
   gl.disable(gl.BLEND);
@@ -215,6 +211,7 @@ export const updateDensityGPU = (
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.density.swap();
+  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -247,26 +244,10 @@ export const updateFPressureGPU = (
   const program = getUpdateFPressureProgram(gl);
   const quadVAO = getQuadVAO(gl);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(quadVAO);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 3);
-  gl.activeTexture(gl.TEXTURE4);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.density.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 4);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.write.framebuffer);
   gl.disable(gl.BLEND);
@@ -274,6 +255,9 @@ export const updateFPressureGPU = (
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.fPressure.swap();
+  uniforms.set(fPressureSampler, {
+    texture: gpuState.fPressure.read.texture,
+  });
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -306,29 +290,10 @@ export const updateVelocityGuessGPU = (
   const program = getUpdateVelocityGuessProgram(gl);
   const quadVAO = getQuadVAO(gl);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(quadVAO);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 3);
-  gl.activeTexture(gl.TEXTURE4);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 4);
-  gl.activeTexture(gl.TEXTURE5);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.density.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 5);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.write.framebuffer);
   gl.disable(gl.BLEND);
@@ -336,6 +301,9 @@ export const updateVelocityGuessGPU = (
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.velocityGuess.swap();
+  uniforms.set(velocityGuessSampler, {
+    texture: gpuState.velocityGuess.read.texture,
+  });
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -368,23 +336,17 @@ export const advectParticlesGPU = (
   const program = getAdvectParticlesProgram(gl);
   const quadVAO = getQuadVAO(gl);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(quadVAO);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 1);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.write.framebuffer);
   gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.position.swap();
+  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -407,38 +369,17 @@ export const updateVelocityGPU = (
   const program = getUpdateVelocityProgram(gl);
   const quadVAO = getQuadVAO(gl);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(quadVAO);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.neighborsTable.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'neighborsTableSampler'), 1);
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 2);
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 3);
-  gl.activeTexture(gl.TEXTURE4);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.mass.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'massSampler'), 4);
-  gl.activeTexture(gl.TEXTURE5);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.fPressure.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'fPressureSampler'), 5);
-  gl.activeTexture(gl.TEXTURE6);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocityGuess.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'velocityGuessSampler'), 6);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
   gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gpuState.velocity.swap();
+  uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -471,6 +412,21 @@ const resetUniforms = (
   uniforms.set(sigma, params.sigma);
   uniforms.set(stiffness, params.stiffness);
   uniforms.set(viscosity, params.viscosity);
+
+  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
+  uniforms.set(fPressureSampler, {texture: gpuState.fPressure.read.texture});
+  uniforms.set(keyParticleSampler, {
+    texture: gpuState.keyParticlePairs.read.texture,
+  });
+  uniforms.set(massSampler, {texture: gpuState.mass.read.texture});
+  uniforms.set(neighborsTableSampler, {
+    texture: gpuState.neighborsTable.texture,
+  });
+  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
+  uniforms.set(velocityGuessSampler, {
+    texture: gpuState.velocityGuess.read.texture,
+  });
+  uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
 };
 
 export const updateSimulationGPU = (

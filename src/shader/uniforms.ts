@@ -1,4 +1,4 @@
-import {GLSLUniform} from '../gl/types';
+import {GLSLUniform} from '../gl/glsl';
 
 export const cellResolution = new GLSLUniform('cellResolution', 'ivec2');
 export const cellSize = new GLSLUniform('cellSize', 'vec2');

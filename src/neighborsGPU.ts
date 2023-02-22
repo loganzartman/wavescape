@@ -1,4 +1,5 @@
-import {createProgram, createShader} from './gl/gl';
+import {createProgram} from './gl/program';
+import {createShader} from './gl/shader';
 import {getCopyVertexVert, getEmptyVAO, getQuadVAO} from './gpuUtil';
 import {sortOddEvenMerge} from './sortGPU';
 import {GPUState} from './state';
@@ -130,15 +131,11 @@ const updateKeyIndexPairs = (
 ) => {
   // write a texture where each ivec2 element contains a cell index and a particle in that cell
   const program = getUpdateKeyIndexPairsProgram(gl);
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(getQuadVAO(gl));
   gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(
     gl.FRAMEBUFFER,
@@ -174,17 +171,13 @@ const updateStartIndex = (
   uniforms: UniformContext
 ) => {
   const program = getUpdateStartIndexProgram(gl);
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   // each particle will be represented as a single point, but their data is backed by textures.
   // so, we don't actually need any vertex attributes.
   gl.bindVertexArray(getEmptyVAO(gl));
   gl.viewport(0, 0, params.cellResolutionX, params.cellResolutionY);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
   gl.clearColor(gpuState.n, 0, 0, 0);
@@ -220,17 +213,13 @@ const updateCount = (
   uniforms: UniformContext
 ) => {
   const program = getUpdateCountProgram(gl);
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   // each particle will be represented as a single point, but their data is backed by textures.
   // so, we don't actually need any vertex attributes.
   gl.bindVertexArray(getEmptyVAO(gl));
   gl.viewport(0, 0, params.cellResolutionX, params.cellResolutionY);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.keyParticlePairs.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'keyParticleSampler'), 0);
-
-  uniforms.apply(gl, program);
+  uniforms.bind(gl, program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
   gl.enable(gl.BLEND);

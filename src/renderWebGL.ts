@@ -1,4 +1,6 @@
-import {createBuffer, createProgram, createShader, createVAO} from './gl/gl';
+import {createBuffer, createVAO} from './gl/gl';
+import {createProgram} from './gl/program';
+import {createShader} from './gl/shader';
 import {Params} from './params';
 import {GPUState} from './state';
 import {memoize} from './util';
@@ -52,7 +54,7 @@ export const renderWebGL = (
   gl.clearColor(1, 1, 1, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(circleVAO);
 
   const dim = Math.min(gl.canvas.width, gl.canvas.height);
@@ -61,29 +63,29 @@ export const renderWebGL = (
   const vOffset = ((gl.canvas.height - dim) / dim) * 0.5;
   mat4.ortho(projection, -hOffset, 1 + hOffset, 1 + vOffset, -vOffset, -1, 1);
   gl.uniformMatrix4fv(
-    gl.getUniformLocation(program, 'projection'),
+    gl.getUniformLocation(program.program, 'projection'),
     false,
     projection
   );
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'positionSampler'), 0);
+  gl.uniform1i(gl.getUniformLocation(program.program, 'positionSampler'), 0);
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'velocitySampler'), 1);
+  gl.uniform1i(gl.getUniformLocation(program.program, 'velocitySampler'), 1);
   gl.activeTexture(gl.TEXTURE2);
   gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program, 'densitySampler'), 2);
-  gl.uniform1i(gl.getUniformLocation(program, 'n'), gpuState.n);
+  gl.uniform1i(gl.getUniformLocation(program.program, 'densitySampler'), 2);
+  gl.uniform1i(gl.getUniformLocation(program.program, 'n'), gpuState.n);
 
   gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
+    gl.getUniformLocation(program.program, 'resolution'),
     gpuState.dataW,
     gpuState.dataH
   );
   gl.uniform1f(
-    gl.getUniformLocation(program, 'particleRadius'),
+    gl.getUniformLocation(program.program, 'particleRadius'),
     params.particleRadius
   );
 

@@ -1,9 +1,6 @@
-import {
-  createProgram,
-  createShader,
-  createTexture2D,
-  PingPongTexture,
-} from './gl/gl';
+import {createTexture2D, PingPongTexture} from './gl/gl';
+import {createProgram} from './gl/program';
+import {createShader} from './gl/shader';
 import {memoize, nextPowerOf2, shuffle, time} from './util';
 import {sortOddEvenMergeFs} from './shader/sortOddEvenMerge';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
@@ -59,19 +56,25 @@ export const sortOddEvenMerge = (
 ) => {
   const program = getSortOddEvenMergeProgram(gl);
 
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   gl.bindVertexArray(getQuadVAO(gl));
 
   gl.viewport(0, 0, textureW, textureH);
   gl.uniform2i(
-    gl.getUniformLocation(program, 'resolution'),
+    gl.getUniformLocation(program.program, 'resolution'),
     textureW,
     textureH
   );
-  gl.uniform1i(gl.getUniformLocation(program, 'n'), n);
-  const inputSamplerLoc = gl.getUniformLocation(program, 'inputSampler');
-  const stageWidthLoc = gl.getUniformLocation(program, 'stageWidth');
-  const compareWidthLoc = gl.getUniformLocation(program, 'compareWidth');
+  gl.uniform1i(gl.getUniformLocation(program.program, 'n'), n);
+  const inputSamplerLoc = gl.getUniformLocation(
+    program.program,
+    'inputSampler'
+  );
+  const stageWidthLoc = gl.getUniformLocation(program.program, 'stageWidth');
+  const compareWidthLoc = gl.getUniformLocation(
+    program.program,
+    'compareWidth'
+  );
   gl.activeTexture(gl.TEXTURE0);
 
   // "width" of a pair (distance between compared elements) increases as powers of 2
