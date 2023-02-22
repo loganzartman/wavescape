@@ -1,11 +1,10 @@
 import {createBuffer, createVAO} from './gl/gl';
 import {createProgram} from './gl/program';
 import {createShader} from './gl/shader';
-import {Params} from './params';
 import {GPUState} from './state';
 import {memoize} from './util';
-import {mat4} from 'gl-matrix';
 import {drawParticlesVs, drawParticlesFs} from './shader/drawParticles';
+import {UniformContext} from './gl/UniformContext';
 
 const getCircleVertexBuffer = memoize(
   (gl: WebGL2RenderingContext, vertexCount: number) =>
@@ -44,7 +43,7 @@ const getDrawParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
 export const renderWebGL = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
-  params: Params
+  uniforms: UniformContext
 ) => {
   const circleVertices = 10;
   const program = getDrawParticlesProgram(gl);
@@ -57,37 +56,7 @@ export const renderWebGL = (
   gl.useProgram(program.program);
   gl.bindVertexArray(circleVAO);
 
-  const dim = Math.min(gl.canvas.width, gl.canvas.height);
-  const projection = mat4.create();
-  const hOffset = ((gl.canvas.width - dim) / dim) * 0.5;
-  const vOffset = ((gl.canvas.height - dim) / dim) * 0.5;
-  mat4.ortho(projection, -hOffset, 1 + hOffset, 1 + vOffset, -vOffset, -1, 1);
-  gl.uniformMatrix4fv(
-    gl.getUniformLocation(program.program, 'projection'),
-    false,
-    projection
-  );
-
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.position.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program.program, 'positionSampler'), 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program.program, 'velocitySampler'), 1);
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, gpuState.velocity.read.texture);
-  gl.uniform1i(gl.getUniformLocation(program.program, 'densitySampler'), 2);
-  gl.uniform1i(gl.getUniformLocation(program.program, 'n'), gpuState.n);
-
-  gl.uniform2i(
-    gl.getUniformLocation(program.program, 'resolution'),
-    gpuState.dataW,
-    gpuState.dataH
-  );
-  gl.uniform1f(
-    gl.getUniformLocation(program.program, 'particleRadius'),
-    params.particleRadius
-  );
+  uniforms.bind(gl, program);
 
   gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, circleVertices, gpuState.n);
 

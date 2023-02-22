@@ -10,35 +10,13 @@ import {updateDensityFs} from './shader/updateDensity';
 import {updateVelocityGuessFs} from './shader/updateVelocityGuess';
 import {updateFPressureFs} from './shader/updateFPressure';
 import {updateNeighborsGPU} from './neighborsGPU';
-import {getPointerDown, getPointerPos, getPointerVel} from './pointer';
 import {UniformContext} from './gl/UniformContext';
 import {
-  cellResolution,
-  cellSize,
-  collisionDistance,
   densitySampler,
-  dt,
-  eta,
   fPressureSampler,
-  hSmoothing,
-  keyParticleResolution,
-  keyParticleSampler,
-  massSampler,
-  n,
-  neighborsTableSampler,
-  particleRadius,
-  particleRestitution,
-  pointerDown,
-  pointerPos,
-  pointerVel,
   positionSampler,
-  resolution,
-  restDensity,
-  sigma,
-  stiffness,
   velocityGuessSampler,
   velocitySampler,
-  viscosity,
 } from './shader/uniforms';
 
 const DEBUG = false;
@@ -385,59 +363,13 @@ export const updateVelocityGPU = (
   gl.useProgram(null);
 };
 
-const resetUniforms = (
-  gpuState: GPUState,
-  params: Params,
-  _dt: number,
-  uniforms: UniformContext
-) => {
-  uniforms.set(cellResolution, [
-    params.cellResolutionX,
-    params.cellResolutionY,
-  ]);
-  uniforms.set(cellSize, [params.cellWidth, params.cellHeight]);
-  uniforms.set(collisionDistance, params.collisionDistance);
-  uniforms.set(dt, _dt);
-  uniforms.set(eta, params.eta);
-  uniforms.set(hSmoothing, params.hSmoothing);
-  uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
-  uniforms.set(n, gpuState.n);
-  uniforms.set(particleRadius, params.particleRadius);
-  uniforms.set(particleRestitution, params.particleRestitution);
-  uniforms.set(pointerDown, Number(getPointerDown()));
-  uniforms.set(pointerPos, getPointerPos());
-  uniforms.set(pointerVel, getPointerVel());
-  uniforms.set(resolution, [gpuState.dataW, gpuState.dataH]);
-  uniforms.set(restDensity, params.restDensity);
-  uniforms.set(sigma, params.sigma);
-  uniforms.set(stiffness, params.stiffness);
-  uniforms.set(viscosity, params.viscosity);
-
-  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
-  uniforms.set(fPressureSampler, {texture: gpuState.fPressure.read.texture});
-  uniforms.set(keyParticleSampler, {
-    texture: gpuState.keyParticlePairs.read.texture,
-  });
-  uniforms.set(massSampler, {texture: gpuState.mass.read.texture});
-  uniforms.set(neighborsTableSampler, {
-    texture: gpuState.neighborsTable.texture,
-  });
-  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
-  uniforms.set(velocityGuessSampler, {
-    texture: gpuState.velocityGuess.read.texture,
-  });
-  uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
-};
-
 export const updateSimulationGPU = (
   gl: WebGL2RenderingContext,
   gpuState: GPUState,
   params: Params,
-  dt: number
+  dt: number,
+  uniforms: UniformContext
 ) => {
-  const uniforms = new UniformContext();
-  resetUniforms(gpuState, params, dt, uniforms);
-
   updateNeighborsGPU(gl, gpuState, params, uniforms);
   updateDensityGPU(gl, gpuState, uniforms);
   updateVelocityGuessGPU(gl, gpuState, uniforms);

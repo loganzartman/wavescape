@@ -1,4 +1,9 @@
+import {mat4} from 'gl-matrix';
 import {GLSLUniform} from '../gl/glsl';
+import {UniformContext} from '../gl/UniformContext';
+import {Params} from '../params';
+import {getPointerDown, getPointerPos, getPointerVel} from '../pointer';
+import {GPUState} from '../state';
 
 export const cellResolution = new GLSLUniform('cellResolution', 'ivec2');
 export const cellSize = new GLSLUniform('cellSize', 'vec2');
@@ -48,3 +53,58 @@ export const velocityGuessSampler = new GLSLUniform(
 );
 export const velocitySampler = new GLSLUniform('velocitySampler', 'sampler2D');
 export const viscosity = new GLSLUniform('viscosity', 'float');
+
+const computeProjection = (gl: WebGL2RenderingContext) => {
+  const dim = Math.min(gl.canvas.width, gl.canvas.height);
+  const projection = mat4.create();
+  const hOffset = ((gl.canvas.width - dim) / dim) * 0.5;
+  const vOffset = ((gl.canvas.height - dim) / dim) * 0.5;
+  mat4.ortho(projection, -hOffset, 1 + hOffset, 1 + vOffset, -vOffset, -1, 1);
+  return projection;
+};
+
+export const resetUniforms = (
+  gl: WebGL2RenderingContext,
+  uniforms: UniformContext,
+  gpuState: GPUState,
+  params: Params,
+  _dt: number
+) => {
+  uniforms.set(cellResolution, [
+    params.cellResolutionX,
+    params.cellResolutionY,
+  ]);
+  uniforms.set(cellSize, [params.cellWidth, params.cellHeight]);
+  uniforms.set(collisionDistance, params.collisionDistance);
+  uniforms.set(dt, _dt);
+  uniforms.set(eta, params.eta);
+  uniforms.set(hSmoothing, params.hSmoothing);
+  uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(n, gpuState.n);
+  uniforms.set(particleRadius, params.particleRadius);
+  uniforms.set(particleRestitution, params.particleRestitution);
+  uniforms.set(pointerDown, Number(getPointerDown()));
+  uniforms.set(pointerPos, getPointerPos());
+  uniforms.set(pointerVel, getPointerVel());
+  uniforms.set(projection, computeProjection(gl));
+  uniforms.set(resolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(restDensity, params.restDensity);
+  uniforms.set(sigma, params.sigma);
+  uniforms.set(stiffness, params.stiffness);
+  uniforms.set(viscosity, params.viscosity);
+
+  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
+  uniforms.set(fPressureSampler, {texture: gpuState.fPressure.read.texture});
+  uniforms.set(keyParticleSampler, {
+    texture: gpuState.keyParticlePairs.read.texture,
+  });
+  uniforms.set(massSampler, {texture: gpuState.mass.read.texture});
+  uniforms.set(neighborsTableSampler, {
+    texture: gpuState.neighborsTable.texture,
+  });
+  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
+  uniforms.set(velocityGuessSampler, {
+    texture: gpuState.velocityGuess.read.texture,
+  });
+  uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
+};

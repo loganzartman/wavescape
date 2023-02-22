@@ -11,6 +11,8 @@ import {testSort} from './sortGPU';
 import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
 import {renderWebGL} from './renderWebGL';
+import {UniformContext} from './gl/UniformContext';
+import {resetUniforms} from './shader/uniforms';
 
 type RunnerState = {
   running: boolean;
@@ -73,12 +75,18 @@ const frame = (
 
   updatePointer(realDt);
 
+  const uniforms = new UniformContext();
+  if (params.mode === 'webgl') {
+    const gl = canvas.getContext('webgl2');
+    resetUniforms(gl, uniforms, gpuState, params, dt);
+  }
+
   if (runnerState.running || runnerState.step) {
     if (params.mode === 'cpu') {
       updateSimulation(state, params, dt);
     } else {
       const gl = canvas.getContext('webgl2');
-      updateSimulationGPU(gl, gpuState, params, dt);
+      updateSimulationGPU(gl, gpuState, params, dt, uniforms);
     }
     runnerState.step = false;
   }
@@ -88,7 +96,7 @@ const frame = (
     renderCanvas2D(ctx, state, params);
   } else {
     const gl = canvas.getContext('webgl2');
-    renderWebGL(gl, gpuState, params);
+    renderWebGL(gl, gpuState, uniforms);
   }
 };
 

@@ -100,7 +100,7 @@ export class UniformContext {
         setUniform(uniform);
       } else {
         throw new Error(
-          `UniformContex lacks uniform ${uniform.type} ${uniform.name}, required by this program.`
+          `UniformContext lacks uniform ${uniform.type} ${uniform.name}, required by this program.`
         );
       }
     }
