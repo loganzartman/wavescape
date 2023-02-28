@@ -6,7 +6,7 @@ import {Params, makeDefaultParams} from './params';
 import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
 import {createUi} from './tweaks';
-import {enableFloatTexture} from './gl/gl';
+import {profileWrapper, enableFloatTexture} from './gl/gl';
 import {testSort} from './sortGPU';
 import {copyStateToGPU, updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
@@ -33,7 +33,7 @@ const reset = (
 ) => {
   makeDamBreak(state, params);
   if (gpuState) {
-    const gl = canvas.getContext('webgl2');
+    const gl = profileWrapper(canvas.getContext('webgl2'));
     copyStateToGPU(gl, state, gpuState);
   }
 };
@@ -77,7 +77,7 @@ const frame = (
 
   const uniforms = new UniformContext();
   if (params.mode === 'webgl') {
-    const gl = canvas.getContext('webgl2');
+    const gl = profileWrapper(canvas.getContext('webgl2'));
     resetUniforms(gl, uniforms, gpuState, params, dt);
   }
 
@@ -85,7 +85,7 @@ const frame = (
     if (params.mode === 'cpu') {
       updateSimulation(state, params, dt);
     } else {
-      const gl = canvas.getContext('webgl2');
+      const gl = profileWrapper(canvas.getContext('webgl2'));
       updateSimulationGPU(gl, gpuState, params, dt, uniforms);
     }
     runnerState.step = false;
@@ -95,7 +95,7 @@ const frame = (
     const ctx = canvas.getContext('2d');
     renderCanvas2D(ctx, state, params);
   } else {
-    const gl = canvas.getContext('webgl2');
+    const gl = profileWrapper(canvas.getContext('webgl2'));
     renderWebGL(gl, gpuState, uniforms);
   }
 };

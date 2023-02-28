@@ -1,5 +1,8 @@
+import {memoize} from '../util';
 import {GLSLUniform} from './glsl';
 import {UniformContext} from './UniformContext';
+
+const PROFILING = false;
 
 export const createTexture2D = (
   gl: WebGL2RenderingContext,
@@ -201,3 +204,24 @@ export const enableFloatTexture = (gl: WebGL2RenderingContext): boolean => {
     gl.deleteTexture(tex);
   }
 };
+
+export const profileWrapper = memoize(
+  (
+    gl: WebGL2RenderingContext,
+    enable: boolean = PROFILING
+  ): WebGL2RenderingContext =>
+    enable
+      ? new Proxy(gl, {
+          get(target: any, prop, receiver) {
+            if (target[prop] instanceof Function) {
+              return (...args: any) => {
+                const result = target[prop](...args);
+                target.finish();
+                return result;
+              };
+            }
+            return Reflect.get(target, prop);
+          },
+        })
+      : gl
+);
