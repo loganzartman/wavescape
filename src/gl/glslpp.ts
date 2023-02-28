@@ -28,8 +28,23 @@ const generateReference = (value: any, deps: ShaderDeps) => {
 
 const generateUniforms = (deps: ShaderDeps) =>
   Array.from(deps.uniforms)
+    .filter((u) => !u.block)
     .map((u) => `uniform ${u.type} ${u.name};`)
     .join('\n');
+
+const generateUniformBlocks = (deps: ShaderDeps) => {
+  const uniforms = Array.from(deps.uniforms);
+  const blocks = Array.from(
+    new Set(uniforms.filter((u) => u.block).map((u) => u.block))
+  );
+  return blocks.map((block) =>
+    [
+      `uniform ${block.name} {`,
+      ...uniforms.map((u) => `  ${u.type} ${u.name};`),
+      `};`,
+    ].join('\n')
+  );
+};
 
 const generateDefs = (deps: ShaderDeps) =>
   Array.from(deps.defs)
@@ -60,17 +75,16 @@ export const compile = (
   const body = compileBody(uncompiled, deps);
 
   const generatedDefs = generateDefs(deps);
+  const generatedUniformBlocks = generateUniformBlocks(deps);
   const generatedUniforms = generateUniforms(deps);
-  const precisions = [
+
+  const source = [
+    '#version 300 es',
     'precision highp sampler2D;',
     'precision highp isampler2D;',
     'precision highp float;',
     'precision highp int;',
-  ].join('\n');
-
-  const source = [
-    '#version 300 es',
-    precisions,
+    generatedUniformBlocks,
     generatedUniforms,
     generatedDefs,
     body,

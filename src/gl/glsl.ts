@@ -78,10 +78,12 @@ export class GLSLFragment {
 export class GLSLUniform<T extends GLSLDataType> {
   name: string;
   type: T;
+  block?: GLSLUniformBlock;
 
-  constructor(name: string, type: T) {
+  constructor(name: string, type: T, block: GLSLUniformBlock = null) {
     this.name = name;
     this.type = type;
+    this.block = block;
   }
 }
 
@@ -92,6 +94,25 @@ export class GLSLDefinition {
   constructor(name: string, definition: UncompiledGLSL) {
     this.name = name;
     this.definition = definition;
+  }
+}
+
+export class GLSLUniformBlock {
+  name: string;
+  uniforms: Set<GLSLUniform<any>> = new Set();
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  _add(uniform: GLSLUniform<any>) {
+    if (uniform.block !== this) {
+      throw new Error(
+        `Use the GLSLUniform constructor to assign the uniform ${uniform.name} to this block (${this.name})`
+      );
+    }
+    this.uniforms.add(uniform);
+    uniform.block = this;
   }
 }
 
