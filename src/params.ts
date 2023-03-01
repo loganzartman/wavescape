@@ -13,6 +13,9 @@ export type PrimaryParams = {
   cellResolutionY: number;
   particleRestitution: number;
   wallRestitution: number;
+  renderMode: 'simple' | 'metaballs';
+  metaballScale: number;
+  metaballThreshold: number;
 };
 
 export type DerivedParams = {
@@ -83,6 +86,9 @@ export const makeDefaultParams = (): Params => {
       cellResolutionY: 40,
       particleRestitution: 0.9,
       wallRestitution: 0.4,
+      renderMode: 'metaballs',
+      metaballScale: 3.0,
+      metaballThreshold: 0.5,
     })
   );
 };

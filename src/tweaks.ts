@@ -29,4 +29,11 @@ export const createUi = (params: Params) => {
   root.addInput(params, 'restDensity', {min: 1});
   root.addInput(params, 'stiffness', {min: 0});
   root.addInput(params, 'viscosity', {min: 0});
+
+  const gfx = root.addFolder({title: 'graphics', expanded: false});
+  gfx.addInput(params, 'renderMode', {
+    options: {simple: 'simple', metaballs: 'metaballs'},
+  });
+  gfx.addInput(params, 'metaballScale', {min: 1, max: 8});
+  gfx.addInput(params, 'metaballThreshold', {min: 0, max: 1});
 };

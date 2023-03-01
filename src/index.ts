@@ -13,6 +13,11 @@ import {renderCanvas2D} from './renderCanvas2D';
 import {renderWebGL} from './renderWebGL';
 import {UniformContext} from './gl/UniformContext';
 import {resetUniforms} from './shader/uniforms';
+import {
+  allocateDisplayTextures,
+  DisplayTextures,
+  resizeDisplayTextures,
+} from './displayTextures';
 
 type RunnerState = {
   running: boolean;
@@ -20,9 +25,19 @@ type RunnerState = {
   tLast: number;
 };
 
-const resize = (canvas: HTMLCanvasElement) => {
+const resize = (
+  canvas: HTMLCanvasElement,
+  gl: WebGL2RenderingContext | null,
+  displayTextures: DisplayTextures | null
+) => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  if (gl) {
+    resizeDisplayTextures(gl, displayTextures, {
+      width: canvas.width,
+      height: canvas.height,
+    });
+  }
 };
 
 const reset = (
@@ -67,7 +82,8 @@ const frame = (
   runnerState: RunnerState,
   state: State,
   gpuState: GPUState,
-  params: Params
+  params: Params,
+  displayTextures: DisplayTextures
 ) => {
   const dt = 0.02;
   const realDt = (Date.now() - runnerState.tLast) / 1000;
@@ -78,7 +94,7 @@ const frame = (
   const uniforms = new UniformContext();
   if (params.mode === 'webgl') {
     const gl = profileWrapper(canvas.getContext('webgl2'));
-    resetUniforms(gl, uniforms, gpuState, params, dt);
+    resetUniforms(uniforms, gl, displayTextures, gpuState, params, dt);
   }
 
   if (runnerState.running || runnerState.step) {
@@ -96,7 +112,7 @@ const frame = (
     renderCanvas2D(ctx, state, params);
   } else {
     const gl = profileWrapper(canvas.getContext('webgl2'));
-    renderWebGL(gl, gpuState, uniforms);
+    renderWebGL(gl, displayTextures, gpuState, uniforms, params);
   }
 };
 
@@ -126,18 +142,19 @@ const init = () => {
   const gpuState: GPUState | null = gl
     ? allocateGPUState({gl, n: params.n, params})
     : null;
+  const displayTextures: DisplayTextures = allocateDisplayTextures();
 
   document.getElementById('container')!.appendChild(canvas);
-  addEventListener('resize', () => resize(canvas), false);
+  addEventListener('resize', () => resize(canvas, gl, displayTextures), false);
 
-  resize(canvas);
+  resize(canvas, gl, displayTextures);
   reset(canvas, state, gpuState, params);
   initPointer();
   initKeybinds(canvas, runnerState, state, gpuState, params);
   createUi(params);
 
   const runFrame = () => {
-    frame(canvas, runnerState, state, gpuState, params);
+    frame(canvas, runnerState, state, gpuState, params, displayTextures);
     requestAnimationFrame(runFrame);
   };
   requestAnimationFrame(runFrame);

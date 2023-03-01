@@ -27,6 +27,20 @@ export const createTexture2D = (
   return tex;
 };
 
+export const setTextureStorage = (
+  gl: WebGL2RenderingContext,
+  texture: WebGLTexture,
+  {
+    internalFormat,
+    width,
+    height,
+  }: {internalFormat: number; width: number; height: number}
+) => {
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat, width, height);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
 type FramebufferAttachments = {
   colorAttachments?: WebGLTexture[];
   depthAttachment?: WebGLTexture;

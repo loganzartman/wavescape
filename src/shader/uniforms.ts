@@ -1,4 +1,5 @@
 import {mat4} from 'gl-matrix';
+import {DisplayTextures} from '../displayTextures';
 import {GLSLUniform} from '../gl/glsl';
 import {UniformContext} from '../gl/UniformContext';
 import {Params} from '../params';
@@ -27,6 +28,8 @@ export const keyParticleSampler = new GLSLUniform(
   'isampler2D'
 );
 export const massSampler = new GLSLUniform('massSampler', 'sampler2D');
+export const metaballScale = new GLSLUniform('metaballScale', 'float');
+export const metaballThreshold = new GLSLUniform('metaballThreshold', 'float');
 export const n = new GLSLUniform('n', 'int');
 export const neighborsTableSampler = new GLSLUniform(
   'neighborsTableSampler',
@@ -51,6 +54,10 @@ export const velocityGuessSampler = new GLSLUniform(
   'velocityGuessSampler',
   'sampler2D'
 );
+export const thicknessSampler = new GLSLUniform(
+  'thicknessSampler',
+  'sampler2D'
+);
 export const velocitySampler = new GLSLUniform('velocitySampler', 'sampler2D');
 export const viscosity = new GLSLUniform('viscosity', 'float');
 
@@ -64,8 +71,9 @@ const computeProjection = (gl: WebGL2RenderingContext) => {
 };
 
 export const resetUniforms = (
-  gl: WebGL2RenderingContext,
   uniforms: UniformContext,
+  gl: WebGL2RenderingContext,
+  displayTextures: DisplayTextures,
   gpuState: GPUState,
   params: Params,
   _dt: number
@@ -80,6 +88,8 @@ export const resetUniforms = (
   uniforms.set(eta, params.eta);
   uniforms.set(hSmoothing, params.hSmoothing);
   uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(metaballScale, params.metaballScale);
+  uniforms.set(metaballThreshold, params.metaballThreshold);
   uniforms.set(n, gpuState.n);
   uniforms.set(particleRadius, params.particleRadius);
   uniforms.set(particleRestitution, params.particleRestitution);
@@ -103,6 +113,7 @@ export const resetUniforms = (
     texture: gpuState.neighborsTable.texture,
   });
   uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
+  uniforms.set(thicknessSampler, {texture: displayTextures.thickness.texture});
   uniforms.set(velocityGuessSampler, {
     texture: gpuState.velocityGuess.read.texture,
   });
