@@ -39,9 +39,8 @@ in vec4 color;
 out vec4 outThickness;
 
 void main() {
-  float d = length(offset);
-  float thickness = max(1.0 - d, 0.0);
-  thickness *= thickness;
+  float d = 1.0 - min(1.0, length(offset));
+  float thickness = 6. * (d * d * d * d * d) - 15. * (d * d * d * d) + 10. * (d * d * d);
   outThickness = vec4(color.rgb * thickness, thickness);
 }
 `);
