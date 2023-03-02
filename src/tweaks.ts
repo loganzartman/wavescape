@@ -43,17 +43,18 @@ export const createUi = (params: Params) => {
     window.location.href = url.toString();
   });
 
-  root.addInput(pointProxy(params, 'gravity'), 'gravity', {
+  const phys = root.addFolder({title: 'physics', expanded: true});
+  phys.addInput(pointProxy(params, 'gravity'), 'gravity', {
     x: {min: -1, max: 1},
     y: {min: -1, max: 1},
   });
-  root.addInput(params, 'hSmoothing', {min: 0});
-  root.addInput(params, 'particleRadius', {min: 0});
-  root.addInput(params, 'restDensity', {min: 1});
-  root.addInput(params, 'stiffness', {min: 0});
-  root.addInput(params, 'viscosity', {min: 0});
+  phys.addInput(params, 'hSmoothing', {min: 0});
+  phys.addInput(params, 'particleRadius', {min: 0});
+  phys.addInput(params, 'restDensity', {min: 1});
+  phys.addInput(params, 'stiffness', {min: 0});
+  phys.addInput(params, 'viscosity', {min: 0});
 
-  const gfx = root.addFolder({title: 'graphics', expanded: false});
+  const gfx = root.addFolder({title: 'graphics', expanded: true});
   gfx.addInput(params, 'renderMode', {
     options: {simple: 'simple', metaballs: 'metaballs'},
   });
