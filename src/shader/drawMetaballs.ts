@@ -2,6 +2,7 @@ import {compile, glsl} from '../gl/glslpp';
 import {
   densitySampler,
   metaballScale,
+  metaballStretch,
   metaballThreshold,
   particleRadius,
   positionSampler,
@@ -26,7 +27,12 @@ void main() {
   vec2 vel = texelFetch(${velocitySampler}, texCoord, 0).xy;
   float density = texelFetch(${densitySampler}, texCoord, 0).x;
 
-  vec2 vertexPos = pos + circleOffset * ${particleRadius} * ${metaballScale};
+  float speed = length(vel);
+  vec2 stretch = speed == 0.0
+    ? vec2(0)
+    : ${metaballStretch} * vel * dot(normalize(circleOffset), vel / speed);
+
+  vec2 vertexPos = pos + (circleOffset + stretch) * ${particleRadius} * ${metaballScale};
   gl_Position = ${projection} * vec4(vertexPos, 0., 1.);
   color = vec4(vel * 2. + 0.5, density / (${restDensity} * 2.0), 1.);  
 }

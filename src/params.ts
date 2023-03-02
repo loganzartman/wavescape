@@ -16,6 +16,7 @@ export type PrimaryParams = {
   renderMode: 'simple' | 'metaballs';
   metaballScale: number;
   metaballThreshold: number;
+  metaballStretch: number;
 };
 
 export type DerivedParams = {
@@ -87,8 +88,9 @@ export const makeDefaultParams = (): Params => {
       particleRestitution: 0.9,
       wallRestitution: 0.4,
       renderMode: 'metaballs',
-      metaballScale: 3.0,
+      metaballScale: 4.0,
       metaballThreshold: 0.5,
+      metaballStretch: 2.0,
     })
   );
 };

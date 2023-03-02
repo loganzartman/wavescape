@@ -36,4 +36,5 @@ export const createUi = (params: Params) => {
   });
   gfx.addInput(params, 'metaballScale', {min: 1, max: 8});
   gfx.addInput(params, 'metaballThreshold', {min: 0, max: 1});
+  gfx.addInput(params, 'metaballStretch', {min: 0, max: 8});
 };

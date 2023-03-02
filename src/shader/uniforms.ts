@@ -30,6 +30,7 @@ export const keyParticleSampler = new GLSLUniform(
 export const massSampler = new GLSLUniform('massSampler', 'sampler2D');
 export const metaballScale = new GLSLUniform('metaballScale', 'float');
 export const metaballThreshold = new GLSLUniform('metaballThreshold', 'float');
+export const metaballStretch = new GLSLUniform('metaballStretch', 'float');
 export const n = new GLSLUniform('n', 'int');
 export const neighborsTableSampler = new GLSLUniform(
   'neighborsTableSampler',
@@ -90,6 +91,7 @@ export const resetUniforms = (
   uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
   uniforms.set(metaballScale, params.metaballScale);
   uniforms.set(metaballThreshold, params.metaballThreshold);
+  uniforms.set(metaballStretch, params.metaballStretch);
   uniforms.set(n, gpuState.n);
   uniforms.set(particleRadius, params.particleRadius);
   uniforms.set(particleRestitution, params.particleRestitution);
