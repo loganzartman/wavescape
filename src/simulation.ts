@@ -47,11 +47,8 @@ export const updateVelocityGuess = (
       state.position[i * 2 + 1]
     );
 
-    const fGravX = 0;
-    const fGravY = 0.5;
-
-    const fExtX = fMouseX + fGravX;
-    const fExtY = fMouseY + fGravY;
+    const fExtX = fMouseX + params.gravity[0] * state.mass[i];
+    const fExtY = fMouseY + params.gravity[1] * state.mass[i];
 
     state.velocityGuess[i * 2 + 0] =
       state.velocity[i * 2 + 0] + (dt / state.mass[i]) * (fViscosityX + fExtX);
