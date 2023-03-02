@@ -5,6 +5,7 @@ import {
   densitySampler,
   dt,
   eta,
+  gravity,
   massSampler,
   particleRadius,
   pointerDown,
@@ -46,7 +47,7 @@ void main() {
 
   vec2 fViscosity = ${viscosity} * laplacianV;
 
-  vec2 fGrav = vec2(0, 0.5);
+  vec2 fGrav = ${gravity} * ownMass;
 
   // hacky wall penalty force
   float wallSize = ${particleRadius};

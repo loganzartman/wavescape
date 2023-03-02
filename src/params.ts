@@ -17,6 +17,7 @@ export type PrimaryParams = {
   metaballScale: number;
   metaballThreshold: number;
   metaballStretch: number;
+  gravity: [number, number];
 };
 
 export type DerivedParams = {
@@ -91,6 +92,7 @@ export const makeDefaultParams = (): Params => {
       metaballScale: 4.0,
       metaballThreshold: 0.5,
       metaballStretch: 2.0,
+      gravity: [0, 0.5],
     })
   );
 };

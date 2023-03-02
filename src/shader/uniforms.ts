@@ -17,6 +17,7 @@ export const fPressureSampler = new GLSLUniform(
   'fPressureSampler',
   'sampler2D'
 );
+export const gravity = new GLSLUniform('gravity', 'vec2');
 export const hSmoothing = new GLSLUniform('hSmoothing', 'float');
 export const inputSampler = new GLSLUniform('inputSampler', 'isampler2D');
 export const keyParticleResolution = new GLSLUniform(
@@ -87,6 +88,7 @@ export const resetUniforms = (
   uniforms.set(collisionDistance, params.collisionDistance);
   uniforms.set(dt, _dt);
   uniforms.set(eta, params.eta);
+  uniforms.set(gravity, params.gravity);
   uniforms.set(hSmoothing, params.hSmoothing);
   uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
   uniforms.set(metaballScale, params.metaballScale);
