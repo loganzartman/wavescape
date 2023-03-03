@@ -1,25 +1,25 @@
 export type PrimaryParams = {
+  cellResolutionX: number;
+  cellResolutionY: number;
   dimension: 2;
   get mode(): 'cpu' | 'webgl';
   get n(): number;
-  logTimestep: number;
-  substeps: number;
-  particleRadius: number;
-  viscosity: number;
-  stiffness: number;
-  restDensity: number;
-  hSmoothing: number;
-  worldWidth: number;
-  worldHeight: number;
-  cellResolutionX: number;
-  cellResolutionY: number;
-  particleRestitution: number;
-  wallRestitution: number;
-  renderMode: 'simple' | 'metaballs';
-  metaballScale: number;
-  metaballThreshold: number;
-  metaballStretch: number;
   gravity: [number, number];
+  hSmoothing: number;
+  logTimestep: number;
+  metaballScale: number;
+  metaballStretch: number;
+  metaballThreshold: number;
+  particleRadius: number;
+  particleRestitution: number;
+  renderMode: 'simple' | 'metaballs';
+  restDensity: number;
+  stiffness: number;
+  substeps: number;
+  viscosity: number;
+  wallRestitution: number;
+  worldHeight: number;
+  worldWidth: number;
 };
 
 export type DerivedParams = {
@@ -73,30 +73,30 @@ export const makeDefaultParams = (): Params => {
   return withDerived(
     scaleByN(500, n, {
       dimension: 2,
+      cellResolutionX: 40,
+      cellResolutionY: 40,
       get mode() {
         return searchParams.has('cpu') ? 'cpu' : 'webgl';
       },
       get n() {
         return n;
       },
-      logTimestep: -1.7,
-      substeps: 1,
-      particleRadius: 0.01,
-      viscosity: 0.0015,
-      stiffness: 1.0,
-      restDensity: 3000,
-      hSmoothing: 0.05,
-      worldWidth: 1,
-      worldHeight: 1,
-      cellResolutionX: 40,
-      cellResolutionY: 40,
-      particleRestitution: 0.9,
-      wallRestitution: 0.4,
-      renderMode: 'metaballs',
-      metaballScale: 4.0,
-      metaballThreshold: 0.5,
-      metaballStretch: 2.0,
       gravity: [0, 0.5],
+      hSmoothing: 0.05,
+      logTimestep: -1.7,
+      metaballScale: 4.0,
+      metaballStretch: 2.0,
+      metaballThreshold: 0.5,
+      particleRadius: 0.01,
+      particleRestitution: 0.9,
+      renderMode: 'metaballs',
+      restDensity: 3000,
+      stiffness: 1.0,
+      substeps: 1,
+      viscosity: 0.0015,
+      wallRestitution: 0.4,
+      worldHeight: 1,
+      worldWidth: 1,
     })
   );
 };

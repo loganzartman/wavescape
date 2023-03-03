@@ -86,40 +86,39 @@ export const resetUniforms = (
   ]);
   uniforms.set(cellSize, [params.cellWidth, params.cellHeight]);
   uniforms.set(collisionDistance, params.collisionDistance);
+  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
   uniforms.set(dt, _dt);
   uniforms.set(eta, params.eta);
+  uniforms.set(fPressureSampler, {texture: gpuState.fPressure.read.texture});
   uniforms.set(gravity, params.gravity);
   uniforms.set(hSmoothing, params.hSmoothing);
   uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(keyParticleSampler, {
+    texture: gpuState.keyParticlePairs.read.texture,
+  });
+  uniforms.set(massSampler, {texture: gpuState.mass.read.texture});
   uniforms.set(metaballScale, params.metaballScale);
   uniforms.set(metaballThreshold, params.metaballThreshold);
   uniforms.set(metaballStretch, params.metaballStretch);
   uniforms.set(n, gpuState.n);
+  uniforms.set(neighborsTableSampler, {
+    texture: gpuState.neighborsTable.texture,
+  });
   uniforms.set(particleRadius, params.particleRadius);
   uniforms.set(particleRestitution, params.particleRestitution);
   uniforms.set(pointerDown, Number(getPointerDown()));
   uniforms.set(pointerPos, getPointerPos());
   uniforms.set(pointerVel, getPointerVel());
+  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
   uniforms.set(projection, computeProjection(gl));
   uniforms.set(resolution, [gpuState.dataW, gpuState.dataH]);
   uniforms.set(restDensity, params.restDensity);
   uniforms.set(sigma, params.sigma);
   uniforms.set(stiffness, params.stiffness);
-  uniforms.set(viscosity, params.viscosity);
-
-  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
-  uniforms.set(fPressureSampler, {texture: gpuState.fPressure.read.texture});
-  uniforms.set(keyParticleSampler, {
-    texture: gpuState.keyParticlePairs.read.texture,
-  });
-  uniforms.set(massSampler, {texture: gpuState.mass.read.texture});
-  uniforms.set(neighborsTableSampler, {
-    texture: gpuState.neighborsTable.texture,
-  });
-  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
   uniforms.set(thicknessSampler, {texture: displayTextures.thickness.texture});
   uniforms.set(velocityGuessSampler, {
     texture: gpuState.velocityGuess.read.texture,
   });
   uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
+  uniforms.set(viscosity, params.viscosity);
 };
