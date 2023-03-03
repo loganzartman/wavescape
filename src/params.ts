@@ -3,6 +3,7 @@ export type PrimaryParams = {
   get mode(): 'cpu' | 'webgl';
   get n(): number;
   logTimestep: number;
+  substeps: number;
   particleRadius: number;
   viscosity: number;
   stiffness: number;
@@ -79,6 +80,7 @@ export const makeDefaultParams = (): Params => {
         return n;
       },
       logTimestep: -1.7,
+      substeps: 1,
       particleRadius: 0.01,
       viscosity: 0.0015,
       stiffness: 1.0,

@@ -85,7 +85,7 @@ const frame = (
   params: Params,
   displayTextures: DisplayTextures
 ) => {
-  const dt = 10 ** params.logTimestep;
+  const dt = 10 ** params.logTimestep / params.substeps;
   const realDt = (Date.now() - runnerState.tLast) / 1000;
   runnerState.tLast = Date.now();
 

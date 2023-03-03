@@ -147,9 +147,12 @@ const advectParticles = (state: State, params: Params, dt: number) => {
 
 export const updateSimulation = (state: State, params: Params, dt: number) => {
   updateNeighbors(state, params);
-  updateDensity(state, params);
-  updateVelocityGuess(state, params, dt);
-  updatePressure(state, params);
-  updateVelocity(state, params, dt);
-  advectParticles(state, params, dt);
+
+  for (let i = 0; i < params.substeps; ++i) {
+    updateDensity(state, params);
+    updateVelocityGuess(state, params, dt);
+    updatePressure(state, params);
+    updateVelocity(state, params, dt);
+    advectParticles(state, params, dt);
+  }
 };

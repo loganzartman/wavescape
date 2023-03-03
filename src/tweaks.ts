@@ -45,6 +45,7 @@ export const createUi = (params: Params) => {
 
   const phys = root.addFolder({title: 'physics', expanded: true});
   phys.addInput(params, 'logTimestep', {min: -4, max: -1.4});
+  phys.addInput(params, 'substeps', {min: 1, max: 10, step: 1});
   phys.addInput(pointProxy(params, 'gravity'), 'gravity', {
     x: {min: -1, max: 1},
     y: {min: -1, max: 1},

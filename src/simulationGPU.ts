@@ -371,9 +371,12 @@ export const updateSimulationGPU = (
   uniforms: UniformContext
 ) => {
   updateNeighborsGPU(gl, gpuState, params, uniforms);
-  updateDensityGPU(gl, gpuState, uniforms);
-  updateVelocityGuessGPU(gl, gpuState, uniforms);
-  updateFPressureGPU(gl, gpuState, uniforms);
-  updateVelocityGPU(gl, gpuState, uniforms);
-  advectParticlesGPU(gl, gpuState, uniforms);
+
+  for (let i = 0; i < params.substeps; ++i) {
+    updateDensityGPU(gl, gpuState, uniforms);
+    updateVelocityGuessGPU(gl, gpuState, uniforms);
+    updateFPressureGPU(gl, gpuState, uniforms);
+    updateVelocityGPU(gl, gpuState, uniforms);
+    advectParticlesGPU(gl, gpuState, uniforms);
+  }
 };
