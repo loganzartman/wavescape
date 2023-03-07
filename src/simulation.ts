@@ -98,9 +98,11 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
     forEachNeighbor(state, params, i, (j) => {
       const dx = state.position[i * 2 + 0] - state.position[j * 2 + 0];
       const dy = state.position[i * 2 + 1] - state.position[j * 2 + 1];
-      const dvx = state.velocity[i * 2 + 0] - state.velocity[j * 2 + 0];
-      const dvy = state.velocity[i * 2 + 1] - state.velocity[j * 2 + 1];
-      const d = length(dx, dy);
+      const dvx =
+        state.velocityGuess[i * 2 + 0] - state.velocityGuess[j * 2 + 0];
+      const dvy =
+        state.velocityGuess[i * 2 + 1] - state.velocityGuess[j * 2 + 1];
+      const d = length(dx, dy) + params.eta;
       const dotDxDv = dot(dx, dy, dvx, dvy);
       if (d < dCol && dotDxDv < 0) {
         collidedMass += state.mass[j];
