@@ -116,4 +116,4 @@ export class GLSLUniformBlock {
   }
 }
 
-export type GLSLReference = GLSLUniform<any> | GLSLDefinition;
+export type GLSLReference = GLSLUniform<any> | GLSLDefinition | string | number;

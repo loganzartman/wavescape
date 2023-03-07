@@ -42,6 +42,7 @@ export const particleRestitution = new GLSLUniform(
   'particleRestitution',
   'float'
 );
+export const phaseSampler = new GLSLUniform('phaseSampler', 'isampler2D');
 export const pointerDown = new GLSLUniform('pointerDown', 'int');
 export const pointerPos = new GLSLUniform('pointerPos', 'vec2');
 export const pointerVel = new GLSLUniform('pointerVel', 'vec2');
@@ -106,6 +107,7 @@ export const resetUniforms = (
   });
   uniforms.set(particleRadius, params.particleRadius);
   uniforms.set(particleRestitution, params.particleRestitution);
+  uniforms.set(phaseSampler, {texture: gpuState.phase.texture});
   uniforms.set(pointerDown, Number(getPointerDown()));
   uniforms.set(pointerPos, getPointerPos());
   uniforms.set(pointerVel, getPointerVel());

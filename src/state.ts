@@ -1,9 +1,11 @@
+import {PHASE_FLUID, PHASE_WALL} from './constants';
 import {createTexture2D, PingPongTexture, RenderTexture} from './gl/gl';
 import {Params} from './params';
 import {dataTextureSize} from './util';
 
 export type PrimaryState = {
   n: number;
+  phase: Int8Array;
   position: Float32Array;
   velocity: Float32Array;
   mass: Float32Array;
@@ -11,6 +13,7 @@ export type PrimaryState = {
 
 export type PrimaryGPUState = {
   n: number;
+  phase: RenderTexture;
   position: PingPongTexture;
   velocity: PingPongTexture;
   mass: PingPongTexture;
@@ -42,6 +45,7 @@ export const allocateState = ({n}: {n: number}): State => {
   const size = dataTextureSize(n) ** 2;
   return {
     n,
+    phase: new Int8Array(size).map(() => PHASE_FLUID),
     position: new Float32Array(size * 2).map(() => 0),
     velocity: new Float32Array(size * 2).map(() => 0),
     mass: new Float32Array(size).map(() => 0),
@@ -64,6 +68,9 @@ export const allocateGPUState = ({
   const dataH = dataTextureSize(n);
   const base = {width: dataW, height: dataH};
 
+  const phase = new RenderTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.R8I})
+  );
   const position = new PingPongTexture(gl, () =>
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );
@@ -102,6 +109,7 @@ export const allocateGPUState = ({
     n,
     dataW,
     dataH,
+    phase,
     position,
     velocity,
     mass,

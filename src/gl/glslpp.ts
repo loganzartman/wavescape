@@ -23,6 +23,9 @@ const generateReference = (value: any, deps: ShaderDeps) => {
       deps.defs.set(value, compileBody(value.definition, deps));
     return value.name;
   }
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value;
+  }
   throw new Error('Unsupported reference: ' + value);
 };
 

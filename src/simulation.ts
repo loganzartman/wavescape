@@ -4,6 +4,7 @@ import {W, dW} from './kernel';
 import {updateNeighbors, forEachNeighbor} from './neighbors';
 import {dot, length} from './util';
 import {getPointerForce} from './pointer';
+import {PHASE_FLUID} from './constants';
 
 export const updateDensity = (state: State, params: Params) => {
   for (let i = 0; i < state.n; ++i) {
@@ -142,8 +143,10 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
 
 const advectParticles = (state: State, params: Params, dt: number) => {
   for (let i = 0; i < state.n; ++i) {
-    state.position[i * 2 + 0] += dt * state.velocity[i * 2 + 0];
-    state.position[i * 2 + 1] += dt * state.velocity[i * 2 + 1];
+    if (state.phase[i] === PHASE_FLUID) {
+      state.position[i * 2 + 0] += dt * state.velocity[i * 2 + 0];
+      state.position[i * 2 + 1] += dt * state.velocity[i * 2 + 1];
+    }
   }
 };
 
