@@ -60,7 +60,6 @@ const scaleByN = (
   return {
     ...params,
     particleRadius: params.particleRadius / f ** 0.5,
-    restDensity: params.restDensity * f,
   };
 };
 
@@ -69,7 +68,7 @@ const searchParams = new URL(document.location.href).searchParams;
 export const makeDefaultParams = (): Params => {
   const n = searchParams.has('n')
     ? Number.parseInt(searchParams.get('n'))
-    : 1000;
+    : 2000;
   return withDerived(
     scaleByN(500, n, {
       dimension: 2,
@@ -82,7 +81,7 @@ export const makeDefaultParams = (): Params => {
         return n;
       },
       gravity: [0, 0.5],
-      hSmoothing: 0.05,
+      hSmoothing: 0.04,
       logTimestep: -1.7,
       metaballScale: 4.0,
       metaballStretch: 2.0,
@@ -90,10 +89,10 @@ export const makeDefaultParams = (): Params => {
       particleRadius: 0.01,
       particleRestitution: 0.9,
       renderMode: 'metaballs',
-      restDensity: 3000,
+      restDensity: 10000,
       stiffness: 1.0,
-      substeps: 1,
-      viscosity: 0.0015,
+      substeps: 2,
+      viscosity: 0.001,
       wallRestitution: 0.4,
       worldHeight: 1,
       worldWidth: 1,
