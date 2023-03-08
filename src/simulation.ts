@@ -118,25 +118,17 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
     state.velocity[i * 2 + 1] -= collisionTerm * dvyCollision;
 
     // kinematic particle-wall collisions
-    const wallSize = params.particleRadius;
-    const wallRestitution = 0.5;
-    if (state.position[i * 2 + 0] < wallSize && state.velocity[i * 2 + 0] < 0) {
-      state.velocity[i * 2 + 0] *= -wallRestitution;
+    if (state.position[i * 2 + 0] < 0 && state.velocity[i * 2 + 0] < 0) {
+      state.velocity[i * 2 + 0] *= -params.wallRestitution;
     }
-    if (state.position[i * 2 + 1] < wallSize && state.velocity[i * 2 + 1] < 0) {
-      state.velocity[i * 2 + 1] *= -wallRestitution;
+    if (state.position[i * 2 + 1] < 0 && state.velocity[i * 2 + 1] < 0) {
+      state.velocity[i * 2 + 1] *= -params.wallRestitution;
     }
-    if (
-      state.position[i * 2 + 0] > 1 - wallSize &&
-      state.velocity[i * 2 + 0] > 0
-    ) {
-      state.velocity[i * 2 + 0] *= -wallRestitution;
+    if (state.position[i * 2 + 0] > 1 && state.velocity[i * 2 + 0] > 0) {
+      state.velocity[i * 2 + 0] *= -params.wallRestitution;
     }
-    if (
-      state.position[i * 2 + 1] > 1 - wallSize &&
-      state.velocity[i * 2 + 1] > 0
-    ) {
-      state.velocity[i * 2 + 1] *= -wallRestitution;
+    if (state.position[i * 2 + 1] > 1 && state.velocity[i * 2 + 1] > 0) {
+      state.velocity[i * 2 + 1] *= -params.wallRestitution;
     }
   }
 };
