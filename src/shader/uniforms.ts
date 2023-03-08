@@ -63,6 +63,7 @@ export const thicknessSampler = new GLSLUniform(
 );
 export const velocitySampler = new GLSLUniform('velocitySampler', 'sampler2D');
 export const viscosity = new GLSLUniform('viscosity', 'float');
+export const wallRestitution = new GLSLUniform('wallRestitution', 'float');
 
 const computeProjection = (gl: WebGL2RenderingContext) => {
   const dim = Math.min(gl.canvas.width, gl.canvas.height);
@@ -123,4 +124,5 @@ export const resetUniforms = (
   });
   uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
   uniforms.set(viscosity, params.viscosity);
+  uniforms.set(wallRestitution, params.wallRestitution);
 };

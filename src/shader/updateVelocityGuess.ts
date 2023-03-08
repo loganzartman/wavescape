@@ -49,26 +49,9 @@ void main() {
 
   vec2 fGrav = ${gravity} * ownMass;
 
-  // hacky wall penalty force
-  float wallSize = ${particleRadius};
-  float kWall = 2000.;
-  vec2 fWall = vec2(0.);
-  if (ownPos.x < wallSize) {
-    fWall.x += kWall * (wallSize - ownPos.x);
-  }
-  if (ownPos.y < wallSize) {
-    fWall.y += kWall * (wallSize - ownPos.y);
-  }
-  if (ownPos.x > 1. - wallSize) {
-    fWall.x -= kWall * (ownPos.x - (1. - wallSize));
-  }
-  if (ownPos.y > 1. - wallSize) {
-    fWall.y -= kWall * (ownPos.y - (1. - wallSize));
-  }
-
   vec2 fPointer = float(${pointerDown}) * 20. * ${pointerVel} * (1. - min(vec2(1), length(ownPos - ${pointerPos}) / 0.1));
 
-  vec2 fExt = fGrav + fWall + fPointer;
+  vec2 fExt = fGrav + fPointer;
 
   vec2 velocityGuess = ownVel + (${dt} / ownMass) * (fViscosity + fExt);
 
