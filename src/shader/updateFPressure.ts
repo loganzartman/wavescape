@@ -19,6 +19,8 @@ void main() {
   vec2 ownPos = texelFetch(${positionSampler}, ownTexCoord, 0).xy;
   float ownDensity = texelFetch(${densitySampler}, ownTexCoord, 0).x;
 
+  float ownPressure = ${stiffness} * (ownDensity / ${restDensity} - 1.);
+
   vec2 fPressure = vec2(0.);
 
   ${foreachNeighbor}(neighborTexCoord, {
@@ -26,7 +28,6 @@ void main() {
     float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;
     float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
     
-    float ownPressure = ${stiffness} * (ownDensity / ${restDensity} - 1.);
     float neighborPressure = ${stiffness} * (neighborDensity / ${restDensity} - 1.);
     vec2 dx = neighborPos - ownPos;
 
