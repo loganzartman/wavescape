@@ -78,7 +78,7 @@ export const sortOddEvenMerge = (
   gl.activeTexture(gl.TEXTURE0);
 
   // "width" of a pair (distance between compared elements) increases as powers of 2
-  for (let stageWidth = 1; stageWidth < nextPowerOf2(n); stageWidth *= 2) {
+  for (let stageWidth = 1; stageWidth <= nextPowerOf2(n); stageWidth *= 2) {
     // for each pass in a stage, width is halved (merge steps)
     for (let compareWidth = stageWidth; compareWidth >= 1; compareWidth /= 2) {
       gl.bindTexture(gl.TEXTURE_2D, texture.read.texture);
@@ -99,7 +99,7 @@ export const sortOddEvenMerge = (
 };
 
 export const testSort = (gl: WebGL2RenderingContext) => {
-  const N = 1022;
+  const N = 2000;
   const tex = new PingPongTexture(gl, () =>
     createTexture2D(gl, {
       internalFormat: gl.RG32I,
@@ -111,7 +111,7 @@ export const testSort = (gl: WebGL2RenderingContext) => {
   const makeData = () =>
     new Int32Array(
       shuffle(Array.from({length: N}).map((_, i) => i)).flatMap((i) => [
-        Math.floor(i / 10),
+        Math.floor(i / 2),
         i,
       ])
     );
