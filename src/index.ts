@@ -50,7 +50,7 @@ const reset = (
   makeDamBreak(state, params);
   if (gpuState) {
     const gl = profileWrapper(canvas.getContext('webgl2'));
-    copyStateToGPU(gl, state, gpuState);
+    copyStateToGPU(gl, state, gpuState, params);
   }
 };
 
@@ -139,10 +139,8 @@ const init = () => {
     tLast: Date.now(),
   };
 
-  const state: State = allocateState({n: params.n});
-  const gpuState: GPUState | null = gl
-    ? allocateGPUState({gl, n: params.n, params})
-    : null;
+  const state: State = allocateState(params);
+  const gpuState: GPUState | null = gl ? allocateGPUState({gl, params}) : null;
   const displayTextures: DisplayTextures = allocateDisplayTextures();
 
   document.getElementById('container')!.appendChild(canvas);

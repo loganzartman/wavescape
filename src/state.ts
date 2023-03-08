@@ -19,6 +19,11 @@ export type PrimaryGPUState = {
   mass: PingPongTexture;
 };
 
+export type NeighborState = {
+  keyParticlePairs: Int32Array;
+  neighborsTable: Float32Array;
+};
+
 export type DerivedState = {
   density: Float32Array;
   velocityGuess: Float32Array;
@@ -38,10 +43,11 @@ export type NeighborGPUState = {
   neighborsTable: RenderTexture;
 };
 
-export type State = PrimaryState & DerivedState;
+export type State = PrimaryState & DerivedState & NeighborState;
 export type GPUState = PrimaryGPUState & DerivedGPUState & NeighborGPUState;
 
-export const allocateState = ({n}: {n: number}): State => {
+export const allocateState = (params: Params): State => {
+  const n = params.n;
   const size = dataTextureSize(n) ** 2;
   return {
     n,
@@ -52,18 +58,21 @@ export const allocateState = ({n}: {n: number}): State => {
     density: new Float32Array(size).map(() => 0),
     velocityGuess: new Float32Array(size * 2).map(() => 0),
     fPressure: new Float32Array(size * 2).map(() => 0),
+    keyParticlePairs: new Int32Array(size * 2).map(() => 0),
+    neighborsTable: new Float32Array(
+      params.cellResolutionX * params.cellResolutionY * 2
+    ).map(() => 0),
   };
 };
 
 export const allocateGPUState = ({
-  n,
   gl,
   params,
 }: {
-  n: number;
   gl: WebGL2RenderingContext;
   params: Params;
 }): GPUState => {
+  const n = params.n;
   const dataW = dataTextureSize(n);
   const dataH = dataTextureSize(n);
   const base = {width: dataW, height: dataH};

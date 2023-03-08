@@ -1,28 +1,24 @@
 import {State} from './state';
 import {Params} from './params';
 
-const keyParticlePairs: Array<[number, number]> = [];
-const startCount: Array<[number, number]> = [];
-
 const cellKey = (params: Params, i: number, j: number) =>
   j * params.cellResolutionX + i;
 
 const posToCell = (params: Params, x: number, y: number): [number, number] => {
-  const neighborCellSize = 1.0 * params.hSmoothing;
   return [
     Math.max(
       0,
-      Math.min(params.cellResolutionX - 1, Math.floor(x / neighborCellSize))
+      Math.min(params.cellResolutionX - 1, Math.floor(x / params.cellWidth))
     ),
     Math.max(
       0,
-      Math.min(params.cellResolutionY - 1, Math.floor(y / neighborCellSize))
+      Math.min(params.cellResolutionY - 1, Math.floor(y / params.cellHeight))
     ),
   ];
 };
 
 export const updateNeighbors = (state: State, params: Params) => {
-  keyParticlePairs.length = 0;
+  const pairs = [];
   for (let i = 0; i < state.n; ++i) {
     const cellPos = posToCell(
       params,
@@ -30,20 +26,29 @@ export const updateNeighbors = (state: State, params: Params) => {
       state.position[i * 2 + 1]
     );
     const key = cellKey(params, cellPos[0], cellPos[1]);
-    keyParticlePairs.push([key, i]);
+    pairs.push([key, i]);
   }
 
-  keyParticlePairs.sort((a, b) => a[0] - b[0]);
+  pairs.sort((a, b) => a[0] - b[0]);
 
-  startCount.length = 0;
+  for (let i = 0; i < state.n; ++i) {
+    const [key, value] = pairs[i];
+    state.keyParticlePairs[i * 2 + 0] = key;
+    state.keyParticlePairs[i * 2 + 1] = value;
+  }
+
   for (let i = 0; i < params.cellResolutionX * params.cellResolutionY; ++i) {
-    startCount.push([state.n, 0]);
+    state.neighborsTable[i * 2 + 0] = state.n;
+    state.neighborsTable[i * 2 + 1] = 0;
   }
 
   for (let i = 0; i < state.n; ++i) {
-    const [key, _] = keyParticlePairs[i];
-    startCount[key][0] = Math.min(startCount[key][0], i);
-    startCount[key][1] += 1;
+    const key = state.keyParticlePairs[i * 2 + 0];
+    state.neighborsTable[key * 2 + 0] = Math.min(
+      state.neighborsTable[key * 2 + 0],
+      i
+    );
+    state.neighborsTable[key * 2 + 1] += 1;
   }
 };
 
@@ -66,9 +71,10 @@ export const forEachNeighbor = (
   for (let cx = cx0; cx <= cx1; ++cx) {
     for (let cy = cy0; cy <= cy1; ++cy) {
       const key = cellKey(params, cx, cy);
-      const [start, count] = startCount[key];
+      const start = state.neighborsTable[key * 2 + 0];
+      const count = state.neighborsTable[key * 2 + 1];
       for (let i = start; i < start + count; ++i) {
-        fn(keyParticlePairs[i][1]);
+        fn(state.keyParticlePairs[i * 2 + 1]);
       }
     }
   }
