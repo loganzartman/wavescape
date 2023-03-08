@@ -1,14 +1,12 @@
-# mysph
-
-_working title_
+# wavescape
 
 WIP interactive, GPU-accelerated fluid simulation using smoothed particle hydrodynamics.
 
 runs almost entirely in WebGL2!
 
-[try it!](https://loganzartman.github.io/mysph)
+[try it!](https://loganzartman.github.io/wavescape)
 
-![This is an image](./img/promo.gif)
+![a dam break scene where water sloshes from one side to the other](./img/promo.gif)
 
 ## controls
 

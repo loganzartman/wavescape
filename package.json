@@ -1,8 +1,8 @@
 {
-  "name": "mysph",
+  "name": "wavescape",
   "version": "1.0.0",
   "description": "sph",
-  "repository": "https://github.com/loganzartman/mysph",
+  "repository": "https://github.com/loganzartman/wavescape",
   "author": "Logan",
   "source": "src/index.html",
   "browserslist": "> 0.5%, last 2 versions, not dead",
