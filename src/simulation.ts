@@ -157,6 +157,7 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
       const dCol = params.collisionDistance;
       const restitution = params.particleRestitution;
       forEachNeighbor(state, params, i, (j) => {
+        const neighborPhase = state.cpu.phase[j];
         const dx =
           state.cpu.position[i * 2 + 0] - state.cpu.position[j * 2 + 0];
         const dy =
@@ -170,11 +171,19 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
         const d = length(dx, dy) + params.eta;
         const dotDxDv = dot(dx, dy, dvx, dvy);
         if (d < dCol && dotDxDv < 0) {
-          collidedMass += state.cpu.mass[j];
-          dvxCollision +=
-            state.cpu.mass[j] * (1 + restitution) * (dotDxDv / d) * (dx / d);
-          dvyCollision +=
-            state.cpu.mass[j] * (1 + restitution) * (dotDxDv / d) * (dy / d);
+          if (neighborPhase === PHASE_FLUID) {
+            collidedMass += state.cpu.mass[j];
+            dvxCollision +=
+              state.cpu.mass[j] * (1 + restitution) * (dotDxDv / d) * (dx / d);
+            dvyCollision +=
+              state.cpu.mass[j] * (1 + restitution) * (dotDxDv / d) * (dy / d);
+          }
+          if (neighborPhase === PHASE_WALL) {
+            dvxCollision +=
+              (1 + params.wallRestitution) * (dotDxDv / d) * (dx / d);
+            dvxCollision +=
+              (1 + params.wallRestitution) * (dotDxDv / d) * (dy / d);
+          }
         }
       });
       const collisionTerm = 1 / (state.cpu.mass[i] + collidedMass);
