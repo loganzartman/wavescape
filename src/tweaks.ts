@@ -25,15 +25,6 @@ export const createUi = (params: Params) => {
 
   const root = pane.addFolder({title: 'settings', expanded: false});
 
-  root.addButton({title: 'Set particle count'}).on('click', () => {
-    const url = new URL(window.location.href);
-    const n = Number.parseInt(prompt('Particle count', String(params.n)));
-    if (Number.isFinite(n)) {
-      url.searchParams.set('n', String(n));
-    }
-    window.location.href = url.toString();
-  });
-
   const switcherTitle =
     params.mode === 'webgl' ? 'Switch to CPU (slow)' : 'Switch to GPU (faster)';
   root.addButton({title: switcherTitle}).on('click', () => {

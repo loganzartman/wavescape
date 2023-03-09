@@ -3,7 +3,6 @@ export type PrimaryParams = {
   cellResolutionY: number;
   dimension: 2;
   get mode(): 'cpu' | 'webgl';
-  get n(): number;
   gravity: [number, number];
   hSmoothing: number;
   logTimestep: number;
@@ -51,51 +50,31 @@ export const withDerived = (params: PrimaryParams): Params => ({
   },
 });
 
-const scaleByN = (
-  defaultN: number,
-  actualN: number,
-  params: PrimaryParams
-): PrimaryParams => {
-  const f = actualN / defaultN;
-  return {
-    ...params,
-    particleRadius: params.particleRadius / f ** 0.5,
-  };
-};
-
 const searchParams = new URL(document.location.href).searchParams;
 
 export const makeDefaultParams = (): Params => {
-  const n = searchParams.has('n')
-    ? Number.parseInt(searchParams.get('n'))
-    : 2000;
-  return withDerived(
-    scaleByN(500, n, {
-      dimension: 2,
-      cellResolutionX: 40,
-      cellResolutionY: 40,
-      get mode() {
-        return searchParams.has('cpu') ? 'cpu' : 'webgl';
-      },
-      get n() {
-        return n;
-      },
-      gravity: [0, 0.5],
-      hSmoothing: 0.04,
-      logTimestep: -1.7,
-      metaballScale: 4.0,
-      metaballStretch: 2.0,
-      metaballThreshold: 0.5,
-      particleRadius: 0.01,
-      particleRestitution: 0.9,
-      renderMode: 'simple',
-      restDensity: 10000,
-      stiffness: 1.0,
-      substeps: 2,
-      viscosity: 0.001,
-      wallRestitution: 0.4,
-      worldHeight: 1,
-      worldWidth: 1,
-    })
-  );
+  return withDerived({
+    dimension: 2,
+    cellResolutionX: 40,
+    cellResolutionY: 40,
+    get mode() {
+      return searchParams.has('cpu') ? 'cpu' : 'webgl';
+    },
+    gravity: [0, 0.5],
+    hSmoothing: 0.04,
+    logTimestep: -1.7,
+    metaballScale: 4.0,
+    metaballStretch: 2.0,
+    metaballThreshold: 0.5,
+    particleRadius: 0.005,
+    particleRestitution: 0.9,
+    renderMode: 'simple',
+    restDensity: 10000,
+    stiffness: 1.0,
+    substeps: 2,
+    viscosity: 0.001,
+    wallRestitution: 0.4,
+    worldHeight: 1,
+    worldWidth: 1,
+  });
 };
