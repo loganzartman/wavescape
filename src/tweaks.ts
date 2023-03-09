@@ -1,5 +1,8 @@
 import {Pane} from 'tweakpane';
+import * as TweakpaneEssentialsPlugin from '@tweakpane/plugin-essentials';
 import {Params} from './params';
+import {State} from './state';
+import {FpsGraphBladeApi} from '@tweakpane/plugin-essentials';
 
 const pointProxy = (object: any, key: string) => {
   const dim = object[key].length;
@@ -20,8 +23,15 @@ const pointProxy = (object: any, key: string) => {
   return {[key]: proxy};
 };
 
-export const createUi = (params: Params) => {
+export const createTweaks = ({
+  state,
+  params,
+}: {
+  state: State;
+  params: Params;
+}): {fpsGraph: any} => {
   const pane = new Pane();
+  pane.registerPlugin(TweakpaneEssentialsPlugin);
 
   const root = pane.addFolder({title: 'settings', expanded: false});
 
@@ -32,6 +42,20 @@ export const createUi = (params: Params) => {
     if (params.mode === 'webgl') url.searchParams.set('cpu', '');
     else url.searchParams.delete('cpu');
     window.location.href = url.toString();
+  });
+
+  const stats = root.addFolder({title: 'stats', expanded: true});
+  const fpsGraph = stats.addBlade({
+    view: 'fpsgraph',
+    label: 'fps',
+    interval: 100,
+    bufferSize: 20,
+    min: 0,
+    max: 300,
+  });
+  stats.addMonitor(state, 'capacity', {
+    label: 'particles',
+    format: (n) => String(n),
   });
 
   const phys = root.addFolder({title: 'physics', expanded: true});
@@ -54,4 +78,33 @@ export const createUi = (params: Params) => {
   gfx.addInput(params, 'metaballScale', {min: 1, max: 8});
   gfx.addInput(params, 'metaballThreshold', {min: 0, max: 1});
   gfx.addInput(params, 'metaballStretch', {min: 0, max: 8});
+
+  return {fpsGraph};
+};
+
+// here be dragons
+const computeGraphRange = (graphBladeApi: any) => {
+  const values = graphBladeApi?.controller_?.valueController?.value_?.value_;
+  let min = values[0];
+  let max = values[0];
+  if (!isFinite(min)) min = 0;
+  if (!isFinite(max)) max = 0;
+  for (const v of values) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  return [min, max];
+};
+
+// https://github.com/cocopon/tweakpane/issues/371#issuecomment-1131843384
+export const autoSetGraphRange = (graphBladeApi: any) => {
+  const [min, max] = computeGraphRange(graphBladeApi);
+  graphBladeApi.controller_.valueController.graphC_.props_.set(
+    'minValue',
+    min - 1
+  );
+  graphBladeApi.controller_.valueController.graphC_.props_.set(
+    'maxValue',
+    max + 1
+  );
 };

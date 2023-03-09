@@ -5,7 +5,7 @@ import {State, createState} from './state';
 import {Params, makeDefaultParams} from './params';
 import {updateSimulation} from './simulation';
 import {initPointer, updatePointer} from './pointer';
-import {createUi} from './tweaks';
+import {autoSetGraphRange, createTweaks} from './tweaks';
 import {profileWrapper, enableFloatTexture} from './gl/gl';
 import {testSort} from './sortGPU';
 import {updateSimulationGPU} from './simulationGPU';
@@ -159,10 +159,13 @@ const init = () => {
   reset({state, params, canvas});
   initPointer();
   initKeybinds({canvas, runnerState, state, params});
-  createUi(params);
+  const {fpsGraph} = createTweaks({params, state});
 
   const runFrame = () => {
+    fpsGraph.begin();
     frame({canvas, runnerState, state, params, displayTextures});
+    fpsGraph.end();
+    autoSetGraphRange(fpsGraph);
     requestAnimationFrame(runFrame);
   };
   requestAnimationFrame(runFrame);

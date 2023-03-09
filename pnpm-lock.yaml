@@ -4,6 +4,7 @@ specifiers:
   '@parcel/core': ^2.8.3
   '@parcel/transformer-glsl': ^2.8.3
   '@tweakpane/core': ^1.1.4
+  '@tweakpane/plugin-essentials': ^0.1.8
   eslint: ^8.27.0
   eslint-plugin-react: ^7.31.10
   gl-matrix: ^3.4.3
@@ -15,6 +16,7 @@ specifiers:
   tweakpane: ^3.1.4
 
 dependencies:
+  '@tweakpane/plugin-essentials': 0.1.8_tweakpane@3.1.4
   gl-matrix: 3.4.3
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
@@ -954,6 +956,14 @@ packages:
   /@tweakpane/core/1.1.4:
     resolution: {integrity: sha512-Z0l5U7IYnLjSzK6PWohEaxqZDV99saa3dymXd5ymw9zrVuVvVzcvK/2TzgyN+suWOIH0DaMzOeLU935qBmUV+w==}
     dev: true
+
+  /@tweakpane/plugin-essentials/0.1.8_tweakpane@3.1.4:
+    resolution: {integrity: sha512-tWBXzWafcjiq+/XvZnOgSz0B+YikwZj0NnqiZPba+AwTiDqNk/6PU3so0Bs0qyxLIJKT/+AUPRL8jBmtERYzwA==}
+    peerDependencies:
+      tweakpane: ^3.1.4
+    dependencies:
+      tweakpane: 3.1.4
+    dev: false
 
   /@types/parse-json/4.0.0:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
