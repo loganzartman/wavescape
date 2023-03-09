@@ -26,27 +26,29 @@ export const renderCanvas2D = (
   let maxdens = 0,
     maxpresx = 0,
     maxpresy = 0;
-  for (let i = 0; i < state.n; ++i) {
-    maxdens = Math.max(maxdens, Math.abs(state.density[i]));
-    maxpresx = Math.max(maxpresx, Math.abs(state.fPressure[i * 2 + 0]));
-    maxpresy = Math.max(maxpresy, Math.abs(state.fPressure[i * 2 + 1]));
+  for (let i = 0; i < state.capacity; ++i) {
+    maxdens = Math.max(maxdens, Math.abs(state.cpu.density[i]));
+    maxpresx = Math.max(maxpresx, Math.abs(state.cpu.fPressure[i * 2 + 0]));
+    maxpresy = Math.max(maxpresy, Math.abs(state.cpu.fPressure[i * 2 + 1]));
   }
 
   // render
-  for (let i = 0; i < state.n; ++i) {
+  for (let i = 0; i < state.capacity; ++i) {
     ctx.beginPath();
     ctx.ellipse(
-      state.position[i * 2 + 0],
-      state.position[i * 2 + 1],
+      state.cpu.position[i * 2 + 0],
+      state.cpu.position[i * 2 + 1],
       params.particleRadius,
       params.particleRadius,
       0,
       0,
       Math.PI * 2
     );
-    ctx.fillStyle = `rgb(${((state.density[i] / maxdens) * 0.5 + 0.5) * 255}, ${
-      ((state.fPressure[i * 2 + 0] / maxpresx) * 0.5 + 0.5) * 255
-    }, ${((state.fPressure[i * 2 + 1] / maxpresy) * 0.5 + 0.5) * 255})`;
+    ctx.fillStyle = `rgb(${
+      ((state.cpu.density[i] / maxdens) * 0.5 + 0.5) * 255
+    }, ${((state.cpu.fPressure[i * 2 + 0] / maxpresx) * 0.5 + 0.5) * 255}, ${
+      ((state.cpu.fPressure[i * 2 + 1] / maxpresy) * 0.5 + 0.5) * 255
+    })`;
     ctx.fill();
   }
 

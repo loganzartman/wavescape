@@ -1,57 +1,82 @@
-import {PHASE_FLUID, PHASE_WALL} from './constants';
 import {createTexture2D, PingPongTexture, RenderTexture} from './gl/gl';
 import {Params} from './params';
 import {dataTextureSize} from './util';
 
-export type PrimaryState = {
-  n: number;
+export type CPUState = {
   phase: Int8Array;
   position: Float32Array;
   velocity: Float32Array;
   mass: Float32Array;
-};
-
-export type PrimaryGPUState = {
-  n: number;
-  phase: RenderTexture;
-  position: PingPongTexture;
-  velocity: PingPongTexture;
-  mass: PingPongTexture;
-};
-
-export type NeighborState = {
+  density: Float32Array;
+  velocityGuess: Float32Array;
+  fPressure: Float32Array;
   keyParticlePairs: Int32Array;
   neighborsTable: Float32Array;
 };
 
-export type DerivedState = {
-  density: Float32Array;
-  velocityGuess: Float32Array;
-  fPressure: Float32Array;
-};
-
-export type DerivedGPUState = {
+export type GPUState = {
   dataW: number;
   dataH: number;
+  phase: RenderTexture;
+  position: PingPongTexture;
+  velocity: PingPongTexture;
+  mass: PingPongTexture;
   density: PingPongTexture;
   velocityGuess: PingPongTexture;
   fPressure: PingPongTexture;
-};
-
-export type NeighborGPUState = {
   keyParticlePairs: PingPongTexture;
   neighborsTable: RenderTexture;
 };
 
-export type State = PrimaryState & DerivedState & NeighborState;
-export type GPUState = PrimaryGPUState & DerivedGPUState & NeighborGPUState;
+export type State = {
+  capacity: number;
+  cpu: CPUState | null;
+  gpu: GPUState | null;
+};
 
-export const allocateState = (params: Params): State => {
-  const n = params.n;
-  const size = dataTextureSize(n) ** 2;
+export const createState = (): State => {
+  return {capacity: 0, cpu: null, gpu: null};
+};
+
+export const setCapacity = ({
+  state,
+  capacity,
+  params,
+  gl,
+}: {
+  state: State;
+  capacity: number;
+  params: Params;
+  gl: WebGL2RenderingContext | null;
+}) => {
+  if (state.gpu) {
+    deallocateGPUState(state.gpu);
+  }
+  const {cellResolutionX, cellResolutionY} = params;
+  state.cpu = allocateCPUState({capacity, cellResolutionX, cellResolutionY});
+  if (gl) {
+    state.gpu = allocateGPUState({
+      gl,
+      capacity,
+      cellResolutionX,
+      cellResolutionY,
+    });
+  }
+  state.capacity = capacity;
+};
+
+const allocateCPUState = ({
+  capacity,
+  cellResolutionX,
+  cellResolutionY,
+}: {
+  capacity: number;
+  cellResolutionX: number;
+  cellResolutionY: number;
+}): CPUState => {
+  const size = dataTextureSize(capacity) ** 2;
   return {
-    n,
-    phase: new Int8Array(size).map(() => PHASE_FLUID),
+    phase: new Int8Array(size).map(() => 0),
     position: new Float32Array(size * 2).map(() => 0),
     velocity: new Float32Array(size * 2).map(() => 0),
     mass: new Float32Array(size).map(() => 0),
@@ -59,22 +84,25 @@ export const allocateState = (params: Params): State => {
     velocityGuess: new Float32Array(size * 2).map(() => 0),
     fPressure: new Float32Array(size * 2).map(() => 0),
     keyParticlePairs: new Int32Array(size * 2).map(() => 0),
-    neighborsTable: new Float32Array(
-      params.cellResolutionX * params.cellResolutionY * 2
-    ).map(() => 0),
+    neighborsTable: new Float32Array(cellResolutionX * cellResolutionY * 2).map(
+      () => 0
+    ),
   };
 };
 
-export const allocateGPUState = ({
+const allocateGPUState = ({
   gl,
-  params,
+  capacity,
+  cellResolutionX,
+  cellResolutionY,
 }: {
   gl: WebGL2RenderingContext;
-  params: Params;
+  capacity: number;
+  cellResolutionX: number;
+  cellResolutionY: number;
 }): GPUState => {
-  const n = params.n;
-  const dataW = dataTextureSize(n);
-  const dataH = dataTextureSize(n);
+  const dataW = dataTextureSize(capacity);
+  const dataH = dataTextureSize(capacity);
   const base = {width: dataW, height: dataH};
 
   const phase = new RenderTexture(gl, () =>
@@ -108,14 +136,13 @@ export const allocateGPUState = ({
   const neighborsTable = new RenderTexture(gl, () =>
     // this has to be a float texture to support blending
     createTexture2D(gl, {
-      width: params.cellResolutionX,
-      height: params.cellResolutionY,
+      width: cellResolutionX,
+      height: cellResolutionY,
       internalFormat: gl.RG32F,
     })
   );
 
   return {
-    n,
     dataW,
     dataH,
     phase,
@@ -130,17 +157,14 @@ export const allocateGPUState = ({
   };
 };
 
-export const clearState = (state: State) => {
-  for (let i = 0; i < state.n; ++i) {
-    state.position[i * 2 + 0] = 0;
-    state.position[i * 2 + 1] = 0;
-    state.velocity[i * 2 + 0] = 0;
-    state.velocity[i * 2 + 1] = 0;
-    state.mass[i] = 0;
-    state.density[i] = 0;
-    state.velocityGuess[i * 2 + 0] = 0;
-    state.velocityGuess[i * 2 + 1] = 0;
-    state.fPressure[i * 2 + 0] = 0;
-    state.fPressure[i * 2 + 1] = 0;
-  }
+const deallocateGPUState = (gpuState: GPUState) => {
+  gpuState.density.delete();
+  gpuState.fPressure.delete();
+  gpuState.keyParticlePairs.delete();
+  gpuState.mass.delete();
+  gpuState.neighborsTable.delete();
+  gpuState.phase.delete();
+  gpuState.position.delete();
+  gpuState.velocity.delete();
+  gpuState.velocityGuess.delete();
 };

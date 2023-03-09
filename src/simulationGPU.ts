@@ -1,6 +1,6 @@
 import {createProgram} from './gl/program';
 import {createShader} from './gl/shader';
-import {GPUState, State} from './state';
+import {State} from './state';
 import {memoize} from './util';
 import {advectParticlesFs} from './shader/advectParticles';
 import {updateVelocityFs} from './shader/updateVelocity';
@@ -33,7 +33,7 @@ const getUpdateDensityProgram = memoize((gl: WebGL2RenderingContext) =>
 
 export const updateDensityGPU = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getUpdateDensityProgram(gl);
@@ -44,22 +44,30 @@ export const updateDensityGPU = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.write.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.density.write.framebuffer);
   gl.disable(gl.BLEND);
-  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.density.swap();
-  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
+  state.gpu.density.swap();
+  uniforms.set(densitySampler, {texture: state.gpu.density.read.texture});
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
 
   if (DEBUG) {
     console.log('updated density');
-    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.density.read.framebuffer);
-    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RED, gl.FLOAT, tmp);
+    const tmp = new Float32Array(state.gpu.dataW * state.gpu.dataH);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.density.read.framebuffer);
+    gl.readPixels(
+      0,
+      0,
+      state.gpu.dataW,
+      state.gpu.dataH,
+      gl.RED,
+      gl.FLOAT,
+      tmp
+    );
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -77,7 +85,7 @@ const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>
 
 export const updateFPressureGPU = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getUpdateFPressureProgram(gl);
@@ -88,14 +96,14 @@ export const updateFPressureGPU = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.write.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.fPressure.write.framebuffer);
   gl.disable(gl.BLEND);
-  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.fPressure.swap();
+  state.gpu.fPressure.swap();
   uniforms.set(fPressureSampler, {
-    texture: gpuState.fPressure.read.texture,
+    texture: state.gpu.fPressure.read.texture,
   });
 
   gl.bindVertexArray(null);
@@ -103,9 +111,9 @@ export const updateFPressureGPU = (
 
   if (DEBUG) {
     console.log('updated fpressure');
-    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.fPressure.read.framebuffer);
-    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RG, gl.FLOAT, tmp);
+    const tmp = new Float32Array(state.gpu.dataW * state.gpu.dataH * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.fPressure.read.framebuffer);
+    gl.readPixels(0, 0, state.gpu.dataW, state.gpu.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -123,7 +131,7 @@ const getUpdateFPressureProgram = memoize((gl: WebGL2RenderingContext) =>
 
 export const updateVelocityGuessGPU = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getUpdateVelocityGuessProgram(gl);
@@ -134,14 +142,14 @@ export const updateVelocityGuessGPU = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.write.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.velocityGuess.write.framebuffer);
   gl.disable(gl.BLEND);
-  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.velocityGuess.swap();
+  state.gpu.velocityGuess.swap();
   uniforms.set(velocityGuessSampler, {
-    texture: gpuState.velocityGuess.read.texture,
+    texture: state.gpu.velocityGuess.read.texture,
   });
 
   gl.bindVertexArray(null);
@@ -149,9 +157,12 @@ export const updateVelocityGuessGPU = (
 
   if (DEBUG) {
     console.log('updated velocity guess');
-    const tmp = new Float32Array(gpuState.dataW * gpuState.dataH * 2);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocityGuess.read.framebuffer);
-    gl.readPixels(0, 0, gpuState.dataW, gpuState.dataH, gl.RG, gl.FLOAT, tmp);
+    const tmp = new Float32Array(state.gpu.dataW * state.gpu.dataH * 2);
+    gl.bindFramebuffer(
+      gl.FRAMEBUFFER,
+      state.gpu.velocityGuess.read.framebuffer
+    );
+    gl.readPixels(0, 0, state.gpu.dataW, state.gpu.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -169,7 +180,7 @@ const getAdvectParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
 
 export const advectParticlesGPU = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getAdvectParticlesProgram(gl);
@@ -180,12 +191,12 @@ export const advectParticlesGPU = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.position.write.framebuffer);
-  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.position.write.framebuffer);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.position.swap();
-  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
+  state.gpu.position.swap();
+  uniforms.set(positionSampler, {texture: state.gpu.position.read.texture});
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -202,7 +213,7 @@ const getUpdateVelocityProgram = memoize((gl: WebGL2RenderingContext) =>
 
 export const updateVelocityGPU = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getUpdateVelocityProgram(gl);
@@ -213,31 +224,37 @@ export const updateVelocityGPU = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.velocity.write.framebuffer);
-  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.velocity.write.framebuffer);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.velocity.swap();
-  uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
+  state.gpu.velocity.swap();
+  uniforms.set(velocitySampler, {texture: state.gpu.velocity.read.texture});
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
 };
 
-export const updateSimulationGPU = (
-  gl: WebGL2RenderingContext,
-  gpuState: GPUState,
-  params: Params,
-  dt: number,
-  uniforms: UniformContext
-) => {
-  updateNeighborsGPU(gl, gpuState, params, uniforms);
+export const updateSimulationGPU = ({
+  gl,
+  state,
+  params,
+  dt,
+  uniforms,
+}: {
+  gl: WebGL2RenderingContext;
+  state: State;
+  params: Params;
+  dt: number;
+  uniforms: UniformContext;
+}) => {
+  updateNeighborsGPU(gl, state, params, uniforms);
 
   for (let i = 0; i < params.substeps; ++i) {
-    updateDensityGPU(gl, gpuState, uniforms);
-    updateVelocityGuessGPU(gl, gpuState, uniforms);
-    updateFPressureGPU(gl, gpuState, uniforms);
-    updateVelocityGPU(gl, gpuState, uniforms);
-    advectParticlesGPU(gl, gpuState, uniforms);
+    updateDensityGPU(gl, state, uniforms);
+    updateVelocityGuessGPU(gl, state, uniforms);
+    updateFPressureGPU(gl, state, uniforms);
+    updateVelocityGPU(gl, state, uniforms);
+    advectParticlesGPU(gl, state, uniforms);
   }
 };

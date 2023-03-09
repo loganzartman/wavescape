@@ -2,7 +2,7 @@ import {createProgram} from './gl/program';
 import {createShader} from './gl/shader';
 import {getCopyVertexVert, getEmptyVAO, getQuadVAO} from './gpuUtil';
 import {sortOddEvenMerge} from './sortGPU';
-import {GPUState} from './state';
+import {State} from './state';
 import {groupNComponents, memoize} from './util';
 import {Params} from './params';
 import {updateKeyIndexPairsFs} from './shader/updateKeyIndexPairs';
@@ -17,24 +17,24 @@ const DEBUG = false;
 
 export const updateNeighborsGPU = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   params: Params,
   uniforms: UniformContext
 ) => {
-  updateKeyIndexPairs(gl, gpuState, uniforms);
+  updateKeyIndexPairs(gl, state, uniforms);
 
   if (DEBUG) {
     console.log('updated key/index pairs');
-    const tmp = new Int32Array(gpuState.dataW * gpuState.dataH * 2);
+    const tmp = new Int32Array(state.gpu.dataW * state.gpu.dataH * 2);
     gl.bindFramebuffer(
       gl.FRAMEBUFFER,
-      gpuState.keyParticlePairs.read.framebuffer
+      state.gpu.keyParticlePairs.read.framebuffer
     );
     gl.readPixels(
       0,
       0,
-      gpuState.dataW,
-      gpuState.dataH,
+      state.gpu.dataW,
+      state.gpu.dataH,
       gl.RG_INTEGER,
       gl.INT,
       tmp
@@ -45,24 +45,24 @@ export const updateNeighborsGPU = (
 
   sortOddEvenMerge(
     gl,
-    gpuState.keyParticlePairs,
-    gpuState.dataW,
-    gpuState.dataH,
-    gpuState.n
+    state.gpu.keyParticlePairs,
+    state.gpu.dataW,
+    state.gpu.dataH,
+    state.capacity
   );
 
   if (DEBUG) {
     console.log('sorted key/index pairs');
-    const tmp = new Int32Array(gpuState.dataW * gpuState.dataH * 2);
+    const tmp = new Int32Array(state.gpu.dataW * state.gpu.dataH * 2);
     gl.bindFramebuffer(
       gl.FRAMEBUFFER,
-      gpuState.keyParticlePairs.read.framebuffer
+      state.gpu.keyParticlePairs.read.framebuffer
     );
     gl.readPixels(
       0,
       0,
-      gpuState.dataW,
-      gpuState.dataH,
+      state.gpu.dataW,
+      state.gpu.dataH,
       gl.RG_INTEGER,
       gl.INT,
       tmp
@@ -71,14 +71,14 @@ export const updateNeighborsGPU = (
     console.log(groupNComponents(Array.from(tmp), 2));
   }
 
-  updateStartIndex(gl, gpuState, params, uniforms);
+  updateStartIndex(gl, state, params, uniforms);
 
   if (DEBUG) {
     console.log('updated start indices');
     const tmp = new Float32Array(
       params.cellResolutionX * params.cellResolutionY * 2
     );
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.neighborsTable.framebuffer);
     gl.readPixels(
       0,
       0,
@@ -92,14 +92,14 @@ export const updateNeighborsGPU = (
     console.log(groupNComponents(Array.from(tmp), 2));
   }
 
-  updateCount(gl, gpuState, params, uniforms);
+  updateCount(gl, state, params, uniforms);
 
   if (DEBUG) {
     console.log('updated counts');
     const tmp = new Float32Array(
       params.cellResolutionX * params.cellResolutionY * 2
     );
-    gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.neighborsTable.framebuffer);
     gl.readPixels(
       0,
       0,
@@ -126,24 +126,24 @@ const getUpdateKeyIndexPairsProgram = memoize((gl: WebGL2RenderingContext) =>
 
 const updateKeyIndexPairs = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   // write a texture where each ivec2 element contains a cell index and a particle in that cell
   const program = getUpdateKeyIndexPairsProgram(gl);
   gl.useProgram(program.program);
   gl.bindVertexArray(getQuadVAO(gl));
-  gl.viewport(0, 0, gpuState.dataW, gpuState.dataH);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
 
   uniforms.bind(gl, program);
 
   gl.bindFramebuffer(
     gl.FRAMEBUFFER,
-    gpuState.keyParticlePairs.write.framebuffer
+    state.gpu.keyParticlePairs.write.framebuffer
   );
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gpuState.keyParticlePairs.swap();
+  state.gpu.keyParticlePairs.swap();
 
   gl.bindTexture(gl.TEXTURE_2D, null);
   gl.bindVertexArray(null);
@@ -166,7 +166,7 @@ const getUpdateStartIndexProgram = memoize((gl: WebGL2RenderingContext) =>
 
 const updateStartIndex = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   params: Params,
   uniforms: UniformContext
 ) => {
@@ -179,13 +179,13 @@ const updateStartIndex = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
-  gl.clearColor(gpuState.n, 0, 0, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.neighborsTable.framebuffer);
+  gl.clearColor(state.capacity, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.enable(gl.BLEND);
   gl.blendEquation(gl.MIN);
   gl.blendFunc(gl.ONE, gl.ONE);
-  gl.drawArrays(gl.POINTS, 0, gpuState.n);
+  gl.drawArrays(gl.POINTS, 0, state.capacity);
   gl.disable(gl.BLEND);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -208,7 +208,7 @@ const getUpdateCountProgram = memoize((gl: WebGL2RenderingContext) =>
 
 const updateCount = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   params: Params,
   uniforms: UniformContext
 ) => {
@@ -221,11 +221,11 @@ const updateCount = (
 
   uniforms.bind(gl, program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, gpuState.neighborsTable.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.neighborsTable.framebuffer);
   gl.enable(gl.BLEND);
   gl.blendEquation(gl.FUNC_ADD);
   gl.blendFunc(gl.ONE, gl.ONE);
-  gl.drawArrays(gl.POINTS, 0, gpuState.n);
+  gl.drawArrays(gl.POINTS, 0, state.capacity);
   gl.disable(gl.BLEND);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 

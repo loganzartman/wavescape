@@ -4,7 +4,7 @@ import {GLSLUniform} from '../gl/glsl';
 import {UniformContext} from '../gl/UniformContext';
 import {Params} from '../params';
 import {getPointerDown, getPointerPos, getPointerVel} from '../pointer';
-import {GPUState} from '../state';
+import {State} from '../state';
 
 export const cellResolution = new GLSLUniform('cellResolution', 'ivec2');
 export const cellSize = new GLSLUniform('cellSize', 'vec2');
@@ -74,55 +74,62 @@ const computeProjection = (gl: WebGL2RenderingContext) => {
   return projection;
 };
 
-export const resetUniforms = (
-  uniforms: UniformContext,
-  gl: WebGL2RenderingContext,
-  displayTextures: DisplayTextures,
-  gpuState: GPUState,
-  params: Params,
-  _dt: number
-) => {
+export const resetUniforms = ({
+  uniforms,
+  gl,
+  state,
+  displayTextures,
+  params,
+  dt: _dt,
+}: {
+  uniforms: UniformContext;
+  gl: WebGL2RenderingContext;
+  state: State;
+  displayTextures: DisplayTextures;
+  params: Params;
+  dt: number;
+}) => {
   uniforms.set(cellResolution, [
     params.cellResolutionX,
     params.cellResolutionY,
   ]);
   uniforms.set(cellSize, [params.cellWidth, params.cellHeight]);
   uniforms.set(collisionDistance, params.collisionDistance);
-  uniforms.set(densitySampler, {texture: gpuState.density.read.texture});
+  uniforms.set(densitySampler, {texture: state.gpu.density.read.texture});
   uniforms.set(dt, _dt);
   uniforms.set(eta, params.eta);
-  uniforms.set(fPressureSampler, {texture: gpuState.fPressure.read.texture});
+  uniforms.set(fPressureSampler, {texture: state.gpu.fPressure.read.texture});
   uniforms.set(gravity, params.gravity);
   uniforms.set(hSmoothing, params.hSmoothing);
-  uniforms.set(keyParticleResolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(keyParticleResolution, [state.gpu.dataW, state.gpu.dataH]);
   uniforms.set(keyParticleSampler, {
-    texture: gpuState.keyParticlePairs.read.texture,
+    texture: state.gpu.keyParticlePairs.read.texture,
   });
-  uniforms.set(massSampler, {texture: gpuState.mass.read.texture});
+  uniforms.set(massSampler, {texture: state.gpu.mass.read.texture});
   uniforms.set(metaballScale, params.metaballScale);
   uniforms.set(metaballThreshold, params.metaballThreshold);
   uniforms.set(metaballStretch, params.metaballStretch);
-  uniforms.set(n, gpuState.n);
+  uniforms.set(n, state.capacity);
   uniforms.set(neighborsTableSampler, {
-    texture: gpuState.neighborsTable.texture,
+    texture: state.gpu.neighborsTable.texture,
   });
   uniforms.set(particleRadius, params.particleRadius);
   uniforms.set(particleRestitution, params.particleRestitution);
-  uniforms.set(phaseSampler, {texture: gpuState.phase.texture});
+  uniforms.set(phaseSampler, {texture: state.gpu.phase.texture});
   uniforms.set(pointerDown, Number(getPointerDown()));
   uniforms.set(pointerPos, getPointerPos());
   uniforms.set(pointerVel, getPointerVel());
-  uniforms.set(positionSampler, {texture: gpuState.position.read.texture});
+  uniforms.set(positionSampler, {texture: state.gpu.position.read.texture});
   uniforms.set(projection, computeProjection(gl));
-  uniforms.set(resolution, [gpuState.dataW, gpuState.dataH]);
+  uniforms.set(resolution, [state.gpu.dataW, state.gpu.dataH]);
   uniforms.set(restDensity, params.restDensity);
   uniforms.set(sigma, params.sigma);
   uniforms.set(stiffness, params.stiffness);
   uniforms.set(thicknessSampler, {texture: displayTextures.thickness.texture});
   uniforms.set(velocityGuessSampler, {
-    texture: gpuState.velocityGuess.read.texture,
+    texture: state.gpu.velocityGuess.read.texture,
   });
-  uniforms.set(velocitySampler, {texture: gpuState.velocity.read.texture});
+  uniforms.set(velocitySampler, {texture: state.gpu.velocity.read.texture});
   uniforms.set(viscosity, params.viscosity);
   uniforms.set(wallRestitution, params.wallRestitution);
 };

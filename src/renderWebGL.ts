@@ -1,7 +1,7 @@
 import {createBuffer, createVAO} from './gl/gl';
 import {createProgram} from './gl/program';
 import {createShader} from './gl/shader';
-import {GPUState} from './state';
+import {State} from './state';
 import {memoize} from './util';
 import {
   drawThicknessFs,
@@ -50,7 +50,7 @@ const getDrawParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
 
 export const renderParticles = (
   gl: WebGL2RenderingContext,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const circleVertices = 10;
@@ -66,7 +66,7 @@ export const renderParticles = (
 
   uniforms.bind(gl, program);
 
-  gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, circleVertices, gpuState.n);
+  gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, circleVertices, state.capacity);
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
@@ -89,7 +89,7 @@ const getDrawThicknessProgram = memoize((gl: WebGL2RenderingContext) =>
 const renderThickness = (
   gl: WebGL2RenderingContext,
   displayTextures: DisplayTextures,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getDrawThicknessProgram(gl);
@@ -108,7 +108,7 @@ const renderThickness = (
   gl.enable(gl.BLEND);
   gl.blendEquation(gl.FUNC_ADD);
   gl.blendFunc(gl.ONE, gl.ONE);
-  gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, gpuState.n);
+  gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, state.capacity);
   gl.disable(gl.BLEND);
 
   gl.bindVertexArray(null);
@@ -129,7 +129,7 @@ const getDrawMetaballsProgram = memoize((gl: WebGL2RenderingContext) =>
 const renderMetaballs = (
   gl: WebGL2RenderingContext,
   displayTextures: DisplayTextures,
-  gpuState: GPUState,
+  state: State,
   uniforms: UniformContext
 ) => {
   const program = getDrawMetaballsProgram(gl);
@@ -149,17 +149,23 @@ const renderMetaballs = (
   gl.useProgram(null);
 };
 
-export const renderWebGL = (
-  gl: WebGL2RenderingContext,
-  displayTextures: DisplayTextures,
-  gpuState: GPUState,
-  uniforms: UniformContext,
-  params: Params
-) => {
+export const renderWebGL = ({
+  gl,
+  displayTextures,
+  state,
+  uniforms,
+  params,
+}: {
+  gl: WebGL2RenderingContext;
+  displayTextures: DisplayTextures;
+  state: State;
+  uniforms: UniformContext;
+  params: Params;
+}) => {
   if (params.renderMode === 'metaballs') {
-    renderThickness(gl, displayTextures, gpuState, uniforms);
-    renderMetaballs(gl, displayTextures, gpuState, uniforms);
+    renderThickness(gl, displayTextures, state, uniforms);
+    renderMetaballs(gl, displayTextures, state, uniforms);
   } else {
-    renderParticles(gl, gpuState, uniforms);
+    renderParticles(gl, state, uniforms);
   }
 };

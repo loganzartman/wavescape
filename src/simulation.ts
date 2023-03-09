@@ -7,12 +7,12 @@ import {getPointerForce} from './pointer';
 import {PHASE_FLUID} from './constants';
 
 export const updateDensity = (state: State, params: Params) => {
-  for (let i = 0; i < state.n; ++i) {
-    state.density[i] = state.mass[i] * W(params, 0, 0);
+  for (let i = 0; i < state.capacity; ++i) {
+    state.cpu.density[i] = state.cpu.mass[i] * W(params, 0, 0);
     forEachNeighbor(state, params, i, (j) => {
-      const dx = state.position[j * 2 + 0] - state.position[i * 2 + 0];
-      const dy = state.position[j * 2 + 1] - state.position[i * 2 + 1];
-      state.density[i] += state.mass[j] * W(params, dx, dy);
+      const dx = state.cpu.position[j * 2 + 0] - state.cpu.position[i * 2 + 0];
+      const dy = state.cpu.position[j * 2 + 1] - state.cpu.position[i * 2 + 1];
+      state.cpu.density[i] += state.cpu.mass[j] * W(params, dx, dy);
     });
   }
 };
@@ -22,17 +22,17 @@ export const updateVelocityGuess = (
   params: Params,
   dt: number
 ) => {
-  for (let i = 0; i < state.n; ++i) {
+  for (let i = 0; i < state.capacity; ++i) {
     // viscosity
     let laplacianVx = 0;
     let laplacianVy = 0;
     forEachNeighbor(state, params, i, (j) => {
-      const dx = state.position[i * 2 + 0] - state.position[j * 2 + 0];
-      const dy = state.position[i * 2 + 1] - state.position[j * 2 + 1];
-      const dvx = state.velocity[i * 2 + 0] - state.velocity[j * 2 + 0];
-      const dvy = state.velocity[i * 2 + 1] - state.velocity[j * 2 + 1];
+      const dx = state.cpu.position[i * 2 + 0] - state.cpu.position[j * 2 + 0];
+      const dy = state.cpu.position[i * 2 + 1] - state.cpu.position[j * 2 + 1];
+      const dvx = state.cpu.velocity[i * 2 + 0] - state.cpu.velocity[j * 2 + 0];
+      const dvy = state.cpu.velocity[i * 2 + 1] - state.cpu.velocity[j * 2 + 1];
       const scale = 2 * (params.dimension + 2);
-      const volume = state.mass[j] / (state.density[j] + params.eta);
+      const volume = state.cpu.mass[j] / (state.cpu.density[j] + params.eta);
       const term = dot(dvx, dvy, dx, dy) / (length(dx, dy) ** 2 + params.eta);
 
       const [dWx, dWy] = dW(params, dx, dy);
@@ -44,51 +44,54 @@ export const updateVelocityGuess = (
 
     // external forces
     const [fMouseX, fMouseY] = getPointerForce(
-      state.position[i * 2 + 0],
-      state.position[i * 2 + 1]
+      state.cpu.position[i * 2 + 0],
+      state.cpu.position[i * 2 + 1]
     );
 
-    const fExtX = fMouseX + params.gravity[0] * state.mass[i];
-    const fExtY = fMouseY + params.gravity[1] * state.mass[i];
+    const fExtX = fMouseX + params.gravity[0] * state.cpu.mass[i];
+    const fExtY = fMouseY + params.gravity[1] * state.cpu.mass[i];
 
-    state.velocityGuess[i * 2 + 0] =
-      state.velocity[i * 2 + 0] + (dt / state.mass[i]) * (fViscosityX + fExtX);
-    state.velocityGuess[i * 2 + 1] =
-      state.velocity[i * 2 + 1] + (dt / state.mass[i]) * (fViscosityY + fExtY);
+    state.cpu.velocityGuess[i * 2 + 0] =
+      state.cpu.velocity[i * 2 + 0] +
+      (dt / state.cpu.mass[i]) * (fViscosityX + fExtX);
+    state.cpu.velocityGuess[i * 2 + 1] =
+      state.cpu.velocity[i * 2 + 1] +
+      (dt / state.cpu.mass[i]) * (fViscosityY + fExtY);
   }
 };
 
 const updatePressure = (state: State, params: Params) => {
-  for (let i = 0; i < state.n; ++i) {
-    state.fPressure[i * 2 + 0] = 0;
-    state.fPressure[i * 2 + 1] = 0;
+  for (let i = 0; i < state.capacity; ++i) {
+    state.cpu.fPressure[i * 2 + 0] = 0;
+    state.cpu.fPressure[i * 2 + 1] = 0;
     forEachNeighbor(state, params, i, (j) => {
       const pressurei =
-        params.stiffness * (state.density[i] / params.restDensity - 1);
+        params.stiffness * (state.cpu.density[i] / params.restDensity - 1);
       const pressurej =
-        params.stiffness * (state.density[j] / params.restDensity - 1);
-      const dx = state.position[j * 2 + 0] - state.position[i * 2 + 0];
-      const dy = state.position[j * 2 + 1] - state.position[i * 2 + 1];
+        params.stiffness * (state.cpu.density[j] / params.restDensity - 1);
+      const dx = state.cpu.position[j * 2 + 0] - state.cpu.position[i * 2 + 0];
+      const dy = state.cpu.position[j * 2 + 1] - state.cpu.position[i * 2 + 1];
       const [dWx, dWy] = dW(params, dx, dy);
 
       const term =
-        state.density[i] *
-        state.mass[j] *
-        (pressurei / state.density[i] ** 2 + pressurej / state.density[j] ** 2);
-      state.fPressure[i * 2 + 0] += term * dWx;
-      state.fPressure[i * 2 + 1] += term * dWy;
+        state.cpu.density[i] *
+        state.cpu.mass[j] *
+        (pressurei / state.cpu.density[i] ** 2 +
+          pressurej / state.cpu.density[j] ** 2);
+      state.cpu.fPressure[i * 2 + 0] += term * dWx;
+      state.cpu.fPressure[i * 2 + 1] += term * dWy;
     });
   }
 };
 
 const updateVelocity = (state: State, params: Params, dt: number) => {
-  for (let i = 0; i < state.n; ++i) {
-    state.velocity[i * 2 + 0] =
-      state.velocityGuess[i * 2 + 0] +
-      (dt / state.mass[i]) * state.fPressure[i * 2 + 0];
-    state.velocity[i * 2 + 1] =
-      state.velocityGuess[i * 2 + 1] +
-      (dt / state.mass[i]) * state.fPressure[i * 2 + 1];
+  for (let i = 0; i < state.capacity; ++i) {
+    state.cpu.velocity[i * 2 + 0] =
+      state.cpu.velocityGuess[i * 2 + 0] +
+      (dt / state.cpu.mass[i]) * state.cpu.fPressure[i * 2 + 0];
+    state.cpu.velocity[i * 2 + 1] =
+      state.cpu.velocityGuess[i * 2 + 1] +
+      (dt / state.cpu.mass[i]) * state.cpu.fPressure[i * 2 + 1];
 
     // kinematic particle-particle collisions
     let dvxCollision = 0;
@@ -97,47 +100,59 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
     const dCol = params.collisionDistance;
     const restitution = params.particleRestitution;
     forEachNeighbor(state, params, i, (j) => {
-      const dx = state.position[i * 2 + 0] - state.position[j * 2 + 0];
-      const dy = state.position[i * 2 + 1] - state.position[j * 2 + 1];
+      const dx = state.cpu.position[i * 2 + 0] - state.cpu.position[j * 2 + 0];
+      const dy = state.cpu.position[i * 2 + 1] - state.cpu.position[j * 2 + 1];
       const dvx =
-        state.velocityGuess[i * 2 + 0] - state.velocityGuess[j * 2 + 0];
+        state.cpu.velocityGuess[i * 2 + 0] - state.cpu.velocityGuess[j * 2 + 0];
       const dvy =
-        state.velocityGuess[i * 2 + 1] - state.velocityGuess[j * 2 + 1];
+        state.cpu.velocityGuess[i * 2 + 1] - state.cpu.velocityGuess[j * 2 + 1];
       const d = length(dx, dy) + params.eta;
       const dotDxDv = dot(dx, dy, dvx, dvy);
       if (d < dCol && dotDxDv < 0) {
-        collidedMass += state.mass[j];
+        collidedMass += state.cpu.mass[j];
         dvxCollision +=
-          state.mass[j] * (1 + restitution) * (dotDxDv / d) * (dx / d);
+          state.cpu.mass[j] * (1 + restitution) * (dotDxDv / d) * (dx / d);
         dvyCollision +=
-          state.mass[j] * (1 + restitution) * (dotDxDv / d) * (dy / d);
+          state.cpu.mass[j] * (1 + restitution) * (dotDxDv / d) * (dy / d);
       }
     });
-    const collisionTerm = 1 / (state.mass[i] + collidedMass);
-    state.velocity[i * 2 + 0] -= collisionTerm * dvxCollision;
-    state.velocity[i * 2 + 1] -= collisionTerm * dvyCollision;
+    const collisionTerm = 1 / (state.cpu.mass[i] + collidedMass);
+    state.cpu.velocity[i * 2 + 0] -= collisionTerm * dvxCollision;
+    state.cpu.velocity[i * 2 + 1] -= collisionTerm * dvyCollision;
 
     // kinematic particle-wall collisions
-    if (state.position[i * 2 + 0] < 0 && state.velocity[i * 2 + 0] < 0) {
-      state.velocity[i * 2 + 0] *= -params.wallRestitution;
+    if (
+      state.cpu.position[i * 2 + 0] < 0 &&
+      state.cpu.velocity[i * 2 + 0] < 0
+    ) {
+      state.cpu.velocity[i * 2 + 0] *= -params.wallRestitution;
     }
-    if (state.position[i * 2 + 1] < 0 && state.velocity[i * 2 + 1] < 0) {
-      state.velocity[i * 2 + 1] *= -params.wallRestitution;
+    if (
+      state.cpu.position[i * 2 + 1] < 0 &&
+      state.cpu.velocity[i * 2 + 1] < 0
+    ) {
+      state.cpu.velocity[i * 2 + 1] *= -params.wallRestitution;
     }
-    if (state.position[i * 2 + 0] > 1 && state.velocity[i * 2 + 0] > 0) {
-      state.velocity[i * 2 + 0] *= -params.wallRestitution;
+    if (
+      state.cpu.position[i * 2 + 0] > 1 &&
+      state.cpu.velocity[i * 2 + 0] > 0
+    ) {
+      state.cpu.velocity[i * 2 + 0] *= -params.wallRestitution;
     }
-    if (state.position[i * 2 + 1] > 1 && state.velocity[i * 2 + 1] > 0) {
-      state.velocity[i * 2 + 1] *= -params.wallRestitution;
+    if (
+      state.cpu.position[i * 2 + 1] > 1 &&
+      state.cpu.velocity[i * 2 + 1] > 0
+    ) {
+      state.cpu.velocity[i * 2 + 1] *= -params.wallRestitution;
     }
   }
 };
 
 const advectParticles = (state: State, params: Params, dt: number) => {
-  for (let i = 0; i < state.n; ++i) {
-    if (state.phase[i] === PHASE_FLUID) {
-      state.position[i * 2 + 0] += dt * state.velocity[i * 2 + 0];
-      state.position[i * 2 + 1] += dt * state.velocity[i * 2 + 1];
+  for (let i = 0; i < state.capacity; ++i) {
+    if (state.cpu.phase[i] === PHASE_FLUID) {
+      state.cpu.position[i * 2 + 0] += dt * state.cpu.velocity[i * 2 + 0];
+      state.cpu.position[i * 2 + 1] += dt * state.cpu.velocity[i * 2 + 1];
     }
   }
 };

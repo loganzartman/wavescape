@@ -1,5 +1,5 @@
 import {Params} from './params';
-import {GPUState, State} from './state';
+import {State} from './state';
 
 export const copyToTexture = (
   gl: WebGL2RenderingContext,
@@ -18,79 +18,78 @@ export const copyToTexture = (
 export const copyStateToGPU = (
   gl: WebGL2RenderingContext,
   state: State,
-  gpuState: GPUState,
   params: Params
 ) => {
   copyToTexture(
     gl,
-    state.phase,
-    gpuState.phase.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.phase,
+    state.gpu.phase.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RED_INTEGER,
     gl.BYTE
   );
   copyToTexture(
     gl,
-    state.position,
-    gpuState.position.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.position,
+    state.gpu.position.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyToTexture(
     gl,
-    state.velocity,
-    gpuState.velocity.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.velocity,
+    state.gpu.velocity.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyToTexture(
     gl,
-    state.mass,
-    gpuState.mass.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.mass,
+    state.gpu.mass.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RED
   );
   copyToTexture(
     gl,
-    state.density,
-    gpuState.density.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.density,
+    state.gpu.density.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RED
   );
   copyToTexture(
     gl,
-    state.velocityGuess,
-    gpuState.velocityGuess.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.velocityGuess,
+    state.gpu.velocityGuess.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyToTexture(
     gl,
-    state.fPressure,
-    gpuState.fPressure.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.fPressure,
+    state.gpu.fPressure.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyToTexture(
     gl,
-    state.keyParticlePairs,
-    gpuState.keyParticlePairs.read.texture,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.cpu.keyParticlePairs,
+    state.gpu.keyParticlePairs.read.texture,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG_INTEGER,
     gl.INT
   );
   copyToTexture(
     gl,
-    state.neighborsTable,
-    gpuState.neighborsTable.texture,
+    state.cpu.neighborsTable,
+    state.gpu.neighborsTable.texture,
     params.cellResolutionX,
     params.cellResolutionY,
     gl.RG
@@ -115,70 +114,69 @@ export const copyFromTexture = (
 export const copyStateFromGPU = (
   gl: WebGL2RenderingContext,
   state: State,
-  gpuState: GPUState,
   params: Params
 ) => {
   copyFromTexture(
     gl,
-    gpuState.phase.framebuffer,
-    state.phase,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.phase.framebuffer,
+    state.cpu.phase,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RED_INTEGER,
     gl.BYTE
   );
   copyFromTexture(
     gl,
-    gpuState.position.read.framebuffer,
-    state.position,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.position.read.framebuffer,
+    state.cpu.position,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.velocity.read.framebuffer,
-    state.velocity,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.velocity.read.framebuffer,
+    state.cpu.velocity,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.mass.read.framebuffer,
-    state.mass,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.mass.read.framebuffer,
+    state.cpu.mass,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RED
   );
   copyFromTexture(
     gl,
-    gpuState.density.read.framebuffer,
-    state.density,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.density.read.framebuffer,
+    state.cpu.density,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RED
   );
   copyFromTexture(
     gl,
-    gpuState.velocityGuess.read.framebuffer,
-    state.velocityGuess,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.velocityGuess.read.framebuffer,
+    state.cpu.velocityGuess,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.fPressure.read.framebuffer,
-    state.fPressure,
-    gpuState.dataW,
-    gpuState.dataH,
+    state.gpu.fPressure.read.framebuffer,
+    state.cpu.fPressure,
+    state.gpu.dataW,
+    state.gpu.dataH,
     gl.RG
   );
   copyFromTexture(
     gl,
-    gpuState.keyParticlePairs.read.framebuffer,
-    state.keyParticlePairs,
+    state.gpu.keyParticlePairs.read.framebuffer,
+    state.cpu.keyParticlePairs,
     params.cellResolutionX,
     params.cellResolutionY,
     gl.RG_INTEGER,
@@ -186,8 +184,8 @@ export const copyStateFromGPU = (
   );
   copyFromTexture(
     gl,
-    gpuState.neighborsTable.framebuffer,
-    state.neighborsTable,
+    state.gpu.neighborsTable.framebuffer,
+    state.cpu.neighborsTable,
     params.cellResolutionX,
     params.cellResolutionY,
     gl.RG
