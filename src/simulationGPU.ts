@@ -73,13 +73,13 @@ export const updateDensityGPU = (
   }
 };
 
-const getUpdateVelocityGuessFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateVelocityGuessFs, type: gl.FRAGMENT_SHADER})
+const getUpdateFPressureFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateFPressureFs, type: gl.FRAGMENT_SHADER})
 );
 
-const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>
+const getUpdateFPressureProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
-    shaders: [getCopyVertexVert(gl), getUpdateVelocityGuessFrag(gl)],
+    shaders: [getCopyVertexVert(gl), getUpdateFPressureFrag(gl)],
   })
 );
 
@@ -119,13 +119,13 @@ export const updateFPressureGPU = (
   }
 };
 
-const getUpdateFPressureFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: updateFPressureFs, type: gl.FRAGMENT_SHADER})
+const getUpdateVelocityGuessFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateVelocityGuessFs, type: gl.FRAGMENT_SHADER})
 );
 
-const getUpdateFPressureProgram = memoize((gl: WebGL2RenderingContext) =>
+const getUpdateVelocityGuessProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
-    shaders: [getCopyVertexVert(gl), getUpdateFPressureFrag(gl)],
+    shaders: [getCopyVertexVert(gl), getUpdateVelocityGuessFrag(gl)],
   })
 );
 
