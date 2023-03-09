@@ -98,13 +98,10 @@ const computeGraphRange = (graphBladeApi: any) => {
 
 // https://github.com/cocopon/tweakpane/issues/371#issuecomment-1131843384
 export const autoSetGraphRange = (graphBladeApi: any) => {
-  const [min, max] = computeGraphRange(graphBladeApi);
-  graphBladeApi.controller_.valueController.graphC_.props_.set(
-    'minValue',
-    min - 1
-  );
+  const [, max] = computeGraphRange(graphBladeApi);
+  graphBladeApi.controller_.valueController.graphC_.props_.set('minValue', 0);
   graphBladeApi.controller_.valueController.graphC_.props_.set(
     'maxValue',
-    max + 1
+    max * 1.2
   );
 };
