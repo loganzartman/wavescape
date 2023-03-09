@@ -9,6 +9,7 @@ export type CPUState = {
   mass: Float32Array;
   density: Float32Array;
   velocityGuess: Float32Array;
+  pressure: Float32Array;
   fPressure: Float32Array;
   keyParticlePairs: Int32Array;
   neighborsTable: Float32Array;
@@ -82,6 +83,7 @@ const allocateCPUState = ({
     mass: new Float32Array(size).map(() => 0),
     density: new Float32Array(size).map(() => 0),
     velocityGuess: new Float32Array(size * 2).map(() => 0),
+    pressure: new Float32Array(size).map(() => 0),
     fPressure: new Float32Array(size * 2).map(() => 0),
     keyParticlePairs: new Int32Array(size * 2).map(() => 0),
     neighborsTable: new Float32Array(cellResolutionX * cellResolutionY * 2).map(

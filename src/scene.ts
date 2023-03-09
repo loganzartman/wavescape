@@ -22,21 +22,32 @@ export const makeDamBreak = ({
     particleVolume,
     x0: 0,
     y0: 0.4,
-    x1: 0.4,
+    x1: 0.2,
     y1: 1,
   });
 
   // TODO: walls
-  // fillRect({
-  //   scene,
-  //   params,
-  //   phase: PHASE_WALL,
-  //   particleVolume,
-  //   x0: 0.48,
-  //   x1: 0.52,
-  //   y0: 0.7,
-  //   y1: 1,
-  // });
+  fillRect({
+    scene,
+    params,
+    phase: PHASE_WALL,
+    particleVolume,
+    x0: 0.47,
+    x1: 0.53,
+    y0: 0.85,
+    y1: 1,
+  });
+
+  fillRect({
+    scene,
+    params,
+    phase: PHASE_WALL,
+    particleVolume,
+    x0: 0,
+    y0: 1,
+    x1: 1.01,
+    y1: 1.02,
+  });
 };
 
 type Particle = {
