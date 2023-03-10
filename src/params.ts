@@ -61,7 +61,7 @@ export const makeDefaultParams = (): Params => {
       return searchParams.has('cpu') ? 'cpu' : 'webgl';
     },
     gravity: [0, 0.5],
-    hSmoothing: 0.04,
+    hSmoothing: 0.03,
     logTimestep: -1.7,
     metaballScale: 4.0,
     metaballStretch: 2.0,
