@@ -47,6 +47,7 @@ export const pointerDown = new GLSLUniform('pointerDown', 'int');
 export const pointerPos = new GLSLUniform('pointerPos', 'vec2');
 export const pointerVel = new GLSLUniform('pointerVel', 'vec2');
 export const positionSampler = new GLSLUniform('positionSampler', 'sampler2D');
+export const pressureSampler = new GLSLUniform('pressureSampler', 'sampler2D');
 export const projection = new GLSLUniform('projection', 'mat4');
 export const resolution = new GLSLUniform('resolution', 'ivec2');
 export const restDensity = new GLSLUniform('restDensity', 'float');
@@ -120,6 +121,7 @@ export const resetUniforms = ({
   uniforms.set(pointerPos, getPointerPos());
   uniforms.set(pointerVel, getPointerVel());
   uniforms.set(positionSampler, {texture: state.gpu.position.read.texture});
+  uniforms.set(pressureSampler, {texture: state.gpu.pressure.read.texture});
   uniforms.set(projection, computeProjection(gl));
   uniforms.set(resolution, [state.gpu.dataW, state.gpu.dataH]);
   uniforms.set(restDensity, params.restDensity);

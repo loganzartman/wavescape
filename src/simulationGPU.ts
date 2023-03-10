@@ -8,6 +8,7 @@ import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
 import {updateDensityFs} from './shader/updateDensity';
 import {updateVelocityGuessFs} from './shader/updateVelocityGuess';
+import {updatePressureFs} from './shader/updatePressure';
 import {updateFPressureFs} from './shader/updateFPressure';
 import {updateNeighborsGPU} from './neighborsGPU';
 import {UniformContext} from './gl/UniformContext';
@@ -15,6 +16,7 @@ import {
   densitySampler,
   fPressureSampler,
   positionSampler,
+  pressureSampler,
   velocityGuessSampler,
   velocitySampler,
 } from './shader/uniforms';
@@ -68,6 +70,52 @@ export const updateDensityGPU = (
       gl.FLOAT,
       tmp
     );
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    console.log(Array.from(tmp));
+  }
+};
+
+const getUpdatePressureFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updatePressureFs, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdatePressureProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getCopyVertexVert(gl), getUpdatePressureFrag(gl)],
+  })
+);
+
+export const updatePressureGPU = (
+  gl: WebGL2RenderingContext,
+  state: State,
+  uniforms: UniformContext
+) => {
+  const program = getUpdatePressureProgram(gl);
+  const quadVAO = getQuadVAO(gl);
+
+  gl.useProgram(program.program);
+  gl.bindVertexArray(quadVAO);
+
+  uniforms.bind(gl, program);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.pressure.write.framebuffer);
+  gl.disable(gl.BLEND);
+  gl.viewport(0, 0, state.gpu.dataW, state.gpu.dataH);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  state.gpu.pressure.swap();
+  uniforms.set(pressureSampler, {
+    texture: state.gpu.pressure.read.texture,
+  });
+
+  gl.bindVertexArray(null);
+  gl.useProgram(null);
+
+  if (DEBUG) {
+    console.log('updated pressure');
+    const tmp = new Float32Array(state.gpu.dataW * state.gpu.dataH * 2);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.fPressure.read.framebuffer);
+    gl.readPixels(0, 0, state.gpu.dataW, state.gpu.dataH, gl.RG, gl.FLOAT, tmp);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     console.log(Array.from(tmp));
   }
@@ -253,6 +301,7 @@ export const updateSimulationGPU = ({
   for (let i = 0; i < params.substeps; ++i) {
     updateDensityGPU(gl, state, uniforms);
     updateVelocityGuessGPU(gl, state, uniforms);
+    updatePressureGPU(gl, state, uniforms);
     updateFPressureGPU(gl, state, uniforms);
     updateVelocityGPU(gl, state, uniforms);
     advectParticlesGPU(gl, state, uniforms);

@@ -9,9 +9,9 @@ void main() {
   ivec2 texCoord = ivec2(gl_FragCoord.xy);
   int phase = texelFetch(${phaseSampler}, texCoord, 0).r;
   vec2 position = texelFetch(${positionSampler}, texCoord, 0).rg;
-  vec2 velocity = texelFetch(${velocitySampler}, texCoord, 0).rg;
 
   if (phase == ${PHASE_FLUID}) {
+    vec2 velocity = texelFetch(${velocitySampler}, texCoord, 0).rg;
     position += velocity * ${dt};
   }
 

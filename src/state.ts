@@ -24,6 +24,7 @@ export type GPUState = {
   mass: PingPongTexture;
   density: PingPongTexture;
   velocityGuess: PingPongTexture;
+  pressure: PingPongTexture;
   fPressure: PingPongTexture;
   keyParticlePairs: PingPongTexture;
   neighborsTable: RenderTexture;
@@ -128,6 +129,9 @@ const allocateGPUState = ({
       internalFormat: gl.RG32F,
     })
   );
+  const pressure = new PingPongTexture(gl, () =>
+    createTexture2D(gl, {...base, internalFormat: gl.R32F})
+  );
   const fPressure = new PingPongTexture(gl, () =>
     createTexture2D(gl, {...base, internalFormat: gl.RG32F})
   );
@@ -153,6 +157,7 @@ const allocateGPUState = ({
     mass,
     density,
     velocityGuess,
+    pressure,
     fPressure,
     keyParticlePairs,
     neighborsTable,
@@ -167,6 +172,7 @@ const deallocateGPUState = (gpuState: GPUState) => {
   gpuState.neighborsTable.delete();
   gpuState.phase.delete();
   gpuState.position.delete();
+  gpuState.pressure.delete();
   gpuState.velocity.delete();
   gpuState.velocityGuess.delete();
 };

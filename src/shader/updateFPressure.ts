@@ -1,11 +1,13 @@
+import {PHASE_FLUID, PHASE_WALL} from '../constants';
 import {compile, glsl} from '../gl/glslpp';
 import {foreachNeighbor} from './foreachNeighbor';
 import {dW} from './kernel';
 import {
   densitySampler,
   massSampler,
+  phaseSampler,
   positionSampler,
-  resolution,
+  pressureSampler,
   restDensity,
   stiffness,
 } from './uniforms';
@@ -13,30 +15,44 @@ import {
 export const updateFPressureFs = compile(glsl`
 out vec4 fPressureOut;
 
-void main() {
-  int particleIndex = int(gl_FragCoord.y) * ${resolution}.x + int(gl_FragCoord.x);
-  ivec2 ownTexCoord = ivec2(gl_FragCoord.xy);
-  vec2 ownPos = texelFetch(${positionSampler}, ownTexCoord, 0).xy;
-  float ownDensity = texelFetch(${densitySampler}, ownTexCoord, 0).x;
+const float gamma = 7.;
 
-  float ownPressure = ${stiffness} * (ownDensity / ${restDensity} - 1.);
+void main() {
+  ivec2 ownTexCoord = ivec2(gl_FragCoord.xy);
+  int ownPhase = texelFetch(${phaseSampler}, ownTexCoord, 0).x;
 
   vec2 fPressure = vec2(0.);
 
-  ${foreachNeighbor}(neighborTexCoord, {
-    vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
-    float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;
-    float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
-    
-    float neighborPressure = ${stiffness} * (neighborDensity / ${restDensity} - 1.);
-    vec2 dx = neighborPos - ownPos;
+  if (ownPhase == ${PHASE_FLUID}) {
+    float restPressure = ${restDensity} * ${stiffness} * ${stiffness} / gamma;
+    vec2 ownPos = texelFetch(${positionSampler}, ownTexCoord, 0).xy;
+    float ownMass = texelFetch(${massSampler}, ownTexCoord, 0).x;
+    float ownDensity = texelFetch(${densitySampler}, ownTexCoord, 0).x;
+    float ownPressure = texelFetch(${pressureSampler}, ownTexCoord, 0).x;
+    float ownVolume = ownMass / ownDensity;
 
-    float term = 
-      ownDensity * 
-      neighborMass * 
-      (ownPressure / pow(ownDensity, 2.) + neighborPressure / pow(neighborDensity, 2.));
-    fPressure += term * ${dW}(dx);
-  })
+    ${foreachNeighbor}(neighborTexCoord, {
+      int neighborPhase = texelFetch(${phaseSampler}, neighborTexCoord, 0).x;
+      vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
+      float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;
+      float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
+      float neighborPressure = texelFetch(${pressureSampler}, neighborTexCoord, 0).x;
+      
+      if (neighborPhase == ${PHASE_WALL}) {
+        neighborDensity = ${restDensity} * pow(neighborPressure / restPressure + 1., 1. / gamma);
+      }
+      
+      vec2 dx = neighborPos - ownPos;
+      vec2 dWx = ${dW}(dx);
+      
+      float avgPressure = 
+        (neighborDensity * ownPressure + ownDensity * neighborPressure) 
+        / (ownDensity + neighborDensity);
+      float neighborVolume = neighborMass / neighborDensity;
+      fPressure += (ownVolume * ownVolume + neighborVolume * neighborVolume) * avgPressure * dWx;
+    })
+    fPressure *= 1. / ownMass;
+  }
 
   fPressureOut = vec4(fPressure, 0, 0);
 }
