@@ -27,3 +27,4 @@ runs almost entirely in WebGL2!
 - neighbor search inspired by [Fast Fixed-radius Nearest Neighbors (Hoetzlein 2014)](https://on-demand.gputechconf.com/gtc/2014/presentations/S4117-fast-fixed-radius-nearest-neighbor-gpu.pdf)
   - a lot of detail is missing from the slides unfortunately
 - [SPH Particle Collisions for the Reduction of Particle Clustering, Interface Stabilisation and Wall Modelling](https://www.scirp.org/journal/paperinformation.aspx?paperid=87356)
+- [A generalized wall boundary condition for smoothed particle hydrodynamics](https://www.sciencedirect.com/science/article/pii/S002199911200229X)
