@@ -54,12 +54,28 @@ void main() {
 export const drawMetaballsFs = compile(glsl`
 out vec4 outColor;
 
+const float outlineScale = 0.7;
+const float antialiasScale = 0.1;
+
 void main() {
   ivec2 texCoord = ivec2(gl_FragCoord.xy);
   vec4 texel = texelFetch(${thicknessSampler}, texCoord, 0);
-  float thickness = texel.a;
-  vec3 color = texel.rgb / thickness;
 
-  outColor = vec4(thickness > ${metaballThreshold} ? color : vec3(1), 1);
+  float thickness = texel.a;
+  vec3 baseColor = texel.rgb / thickness;
+  vec3 outlineColor = baseColor * 1.8;
+  vec3 backgroundColor = vec3(0.87);
+
+  float outlineStartThreshold = ${metaballThreshold} * (1. + outlineScale);
+  float antialiasEndThreshold = ${metaballThreshold} * (1. - antialiasScale);
+
+  vec3 color = baseColor;
+  if (thickness < outlineStartThreshold) 
+    color = mix(baseColor, outlineColor, (outlineStartThreshold - thickness) / (outlineStartThreshold - ${metaballThreshold}));
+  if (thickness < ${metaballThreshold}) 
+    color = mix(outlineColor, backgroundColor, (${metaballThreshold} - thickness) / (${metaballThreshold} - antialiasEndThreshold));
+  if (thickness < antialiasEndThreshold) color = backgroundColor;
+
+  outColor = vec4(color, 1);
 }
 `);

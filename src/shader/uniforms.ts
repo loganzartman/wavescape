@@ -57,6 +57,7 @@ export const restPressure = new GLSLUniform('restPressure', 'float');
 export const sigma = new GLSLUniform('sigma', 'float');
 export const stageWidth = new GLSLUniform('stageWidth', 'int');
 export const stiffness = new GLSLUniform('stiffness', 'float');
+export const time = new GLSLUniform('time', 'float');
 export const velocityGuessSampler = new GLSLUniform(
   'velocityGuessSampler',
   'sampler2D'
@@ -134,6 +135,7 @@ export const resetUniforms = ({
   uniforms.set(sigma, params.sigma);
   uniforms.set(stiffness, params.stiffness);
   uniforms.set(thicknessSampler, {texture: displayTextures.thickness.texture});
+  uniforms.set(time, performance.now() / 1000);
   uniforms.set(velocityGuessSampler, {
     texture: state.gpu.velocityGuess.read.texture,
   });

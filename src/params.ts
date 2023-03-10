@@ -82,7 +82,7 @@ export const makeDefaultParams = (): Params => {
     metaballThreshold: 0.5,
     particleRestitution: 0.9,
     particleRadius: 0.005,
-    renderMode: 'simple',
+    renderMode: 'metaballs',
     restDensity: 10000,
     stiffness: 1.0,
     substeps: 2,
