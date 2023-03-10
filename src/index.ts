@@ -159,7 +159,13 @@ const init = () => {
   reset({state, params, canvas});
   initPointer();
   initKeybinds({canvas, runnerState, state, params});
-  const {fpsGraph} = createTweaks({params, state});
+  const {fpsGraph} = createTweaks({
+    params,
+    state,
+    onReset: () => {
+      reset({state, params, canvas});
+    },
+  });
 
   const runFrame = () => {
     fpsGraph.begin();

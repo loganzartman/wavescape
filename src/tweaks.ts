@@ -26,9 +26,11 @@ const pointProxy = (object: any, key: string) => {
 export const createTweaks = ({
   state,
   params,
+  onReset,
 }: {
   state: State;
   params: Params;
+  onReset: () => void;
 }): {fpsGraph: any} => {
   const pane = new Pane();
   pane.registerPlugin(TweakpaneEssentialsPlugin);
@@ -58,6 +60,13 @@ export const createTweaks = ({
     format: (n) => String(n),
   });
 
+  const scn = root.addFolder({title: 'scene', expanded: true});
+  scn.addInput(params, 'particleRadius', {
+    min: 1 / 400,
+    max: 1 / 100,
+  });
+  scn.addButton({title: 'apply & reset'}).on('click', onReset);
+
   const phys = root.addFolder({title: 'physics', expanded: true});
   phys.addInput(params, 'logTimestep', {min: -4, max: -1.4});
   phys.addInput(params, 'substeps', {min: 1, max: 10, step: 1});
@@ -66,7 +75,6 @@ export const createTweaks = ({
     y: {min: -1, max: 1},
   });
   phys.addInput(params, 'hSmoothing', {min: 0});
-  phys.addInput(params, 'particleRadius', {min: 0});
   phys.addInput(params, 'restDensity', {min: 1});
   phys.addInput(params, 'stiffness', {min: 0});
   phys.addInput(params, 'viscosity', {min: 0});

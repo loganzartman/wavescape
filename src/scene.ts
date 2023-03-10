@@ -10,16 +10,10 @@ export const makeDamBreak = ({
   params: Params;
   scene: Scene;
 }) => {
-  // temporary: calculate volume such that the 1x1 simulation area
-  // is filled with 100x100 particles. We'll fill less so there will
-  // be less than 10k particles.
-  const particleVolume = (1 / 100) ** 2;
-
   fillRect({
     scene,
     params,
     phase: PHASE_FLUID,
-    particleVolume,
     x0: 0,
     y0: 0.4,
     x1: 0.2,
@@ -31,9 +25,8 @@ export const makeDamBreak = ({
     scene,
     params,
     phase: PHASE_WALL,
-    particleVolume,
-    x0: 0.47,
-    x1: 0.53,
+    x0: 0.48,
+    x1: 0.52,
     y0: 0.85,
     y1: 1,
   });
@@ -42,10 +35,9 @@ export const makeDamBreak = ({
     scene,
     params,
     phase: PHASE_WALL,
-    particleVolume,
     x0: 0,
     y0: 1,
-    x1: 1.01,
+    x1: 1,
     y1: 1.02,
   });
 };
@@ -104,7 +96,6 @@ export const fillRect = ({
   y0,
   x1,
   y1,
-  particleVolume,
 }: {
   scene: Scene;
   params: Params;
@@ -113,9 +104,8 @@ export const fillRect = ({
   y0: number;
   x1: number;
   y1: number;
-  particleVolume: number;
 }) => {
-  const particleSpacing = Math.sqrt(particleVolume);
+  const particleSpacing = params.particleRadius * 2;
 
   const countX = (x1 - x0) / particleSpacing;
   const countY = (y1 - y0) / particleSpacing;
@@ -129,7 +119,7 @@ export const fillRect = ({
       scene.particles.push({
         x,
         y,
-        mass: params.restDensity * particleVolume,
+        mass: params.restDensity * params.particleVolume,
         phase,
       });
     }

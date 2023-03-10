@@ -27,6 +27,7 @@ export type DerivedParams = {
   get cellWidth(): number;
   get cellHeight(): number;
   get collisionDistance(): number;
+  get particleVolume(): number;
 };
 
 export type Params = PrimaryParams & DerivedParams;
@@ -48,6 +49,9 @@ export const withDerived = (params: PrimaryParams): Params => ({
   get collisionDistance() {
     return this.particleRadius; // TODO: based on rest density
   },
+  get particleVolume() {
+    return (2 * this.particleRadius) ** 2;
+  },
 });
 
 const searchParams = new URL(document.location.href).searchParams;
@@ -66,8 +70,8 @@ export const makeDefaultParams = (): Params => {
     metaballScale: 4.0,
     metaballStretch: 2.0,
     metaballThreshold: 0.5,
-    particleRadius: 0.005,
     particleRestitution: 0.9,
+    particleRadius: 0.005,
     renderMode: 'simple',
     restDensity: 10000,
     stiffness: 1.0,
