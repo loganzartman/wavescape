@@ -4,18 +4,17 @@ import {foreachNeighbor} from './foreachNeighbor';
 import {dW} from './kernel';
 import {
   densitySampler,
+  gamma,
   massSampler,
   phaseSampler,
   positionSampler,
   pressureSampler,
   restDensity,
-  stiffness,
+  restPressure,
 } from './uniforms';
 
 export const updateFPressureFs = compile(glsl`
 out vec4 fPressureOut;
-
-const float gamma = 7.;
 
 void main() {
   ivec2 ownTexCoord = ivec2(gl_FragCoord.xy);
@@ -24,7 +23,6 @@ void main() {
   vec2 fPressure = vec2(0.);
 
   if (ownPhase == ${PHASE_FLUID}) {
-    float restPressure = ${restDensity} * ${stiffness} * ${stiffness} / gamma;
     vec2 ownPos = texelFetch(${positionSampler}, ownTexCoord, 0).xy;
     float ownMass = texelFetch(${massSampler}, ownTexCoord, 0).x;
     float ownDensity = texelFetch(${densitySampler}, ownTexCoord, 0).x;
@@ -39,7 +37,7 @@ void main() {
       float neighborPressure = texelFetch(${pressureSampler}, neighborTexCoord, 0).x;
       
       if (neighborPhase == ${PHASE_WALL}) {
-        neighborDensity = ${restDensity} * pow(neighborPressure / restPressure + 1., 1. / gamma);
+        neighborDensity = ${restDensity} * pow(neighborPressure / ${restPressure} + 1., 1. / ${gamma});
       }
       
       vec2 dx = neighborPos - ownPos;

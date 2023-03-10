@@ -1,12 +1,10 @@
 import {compile, glsl} from '../gl/glslpp';
+import {getParticleColor} from './getParticleColor';
 import {
-  densitySampler,
   particleRadius,
   positionSampler,
   projection,
   resolution,
-  restDensity,
-  velocitySampler,
 } from './uniforms';
 
 export const drawParticlesVs = compile(glsl`
@@ -18,12 +16,10 @@ void main() {
   int particleIndex = gl_InstanceID;
   ivec2 texCoord = ivec2(particleIndex % ${resolution}.x, particleIndex / ${resolution}.x);
   vec2 pos = texelFetch(${positionSampler}, texCoord, 0).xy;
-  vec2 vel = texelFetch(${velocitySampler}, texCoord, 0).xy;
-  float density = texelFetch(${densitySampler}, texCoord, 0).x;
+  color = ${getParticleColor}(particleIndex);  
 
   vec2 vertexPos = pos + circleOffset * ${particleRadius};
   gl_Position = ${projection} * vec4(vertexPos, 0., 1.);
-  color = vec4(vel * 2. + 0.5, density / (${restDensity} * 2.0), 1.);  
 }
 `);
 

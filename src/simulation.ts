@@ -6,8 +6,6 @@ import {dot, length} from './util';
 import {getPointerForce} from './pointer';
 import {PHASE_FLUID, PHASE_WALL} from './constants';
 
-const gamma = 7;
-
 export const updateDensity = (state: State, params: Params) => {
   for (let i = 0; i < state.capacity; ++i) {
     state.cpu.density[i] = state.cpu.mass[i] * W(params, 0, 0);
@@ -73,9 +71,9 @@ export const updateVelocityGuess = (
 };
 
 const updatePressure = (state: State, params: Params) => {
-  const restPressure = (params.restDensity * params.stiffness ** 2) / gamma;
   const fluidPressure = (i: number) =>
-    restPressure * ((state.cpu.density[i] / params.restDensity) ** gamma - 1);
+    params.restPressure *
+    ((state.cpu.density[i] / params.restDensity) ** params.gamma - 1);
 
   for (let i = 0; i < state.capacity; ++i) {
     const phase = state.cpu.phase[i];
@@ -102,7 +100,6 @@ const updatePressure = (state: State, params: Params) => {
 };
 
 const updateFPressure = (state: State, params: Params) => {
-  const restPressure = (params.restDensity * params.stiffness ** 2) / gamma;
   for (let i = 0; i < state.capacity; ++i) {
     const phase = state.cpu.phase[i];
     state.cpu.fPressure[i * 2 + 0] = 0;
@@ -121,7 +118,8 @@ const updateFPressure = (state: State, params: Params) => {
         let densityJ = state.cpu.density[j];
         if (state.cpu.phase[j] === PHASE_WALL) {
           densityJ =
-            params.restDensity * (pressureJ / restPressure + 1) ** (1 / gamma);
+            params.restDensity *
+            (pressureJ / params.restPressure + 1) ** (1 / params.gamma);
         }
 
         const avgPressure =

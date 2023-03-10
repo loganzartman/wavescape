@@ -9,6 +9,7 @@ import {State} from '../state';
 export const cellResolution = new GLSLUniform('cellResolution', 'ivec2');
 export const cellSize = new GLSLUniform('cellSize', 'vec2');
 export const collisionDistance = new GLSLUniform('collisionDistance', 'float');
+export const colorMode = new GLSLUniform('colorMode', 'int');
 export const compareWidth = new GLSLUniform('compareWidth', 'int');
 export const densitySampler = new GLSLUniform('densitySampler', 'sampler2D');
 export const dt = new GLSLUniform('dt', 'float');
@@ -17,6 +18,7 @@ export const fPressureSampler = new GLSLUniform(
   'fPressureSampler',
   'sampler2D'
 );
+export const gamma = new GLSLUniform('gamma', 'float');
 export const gravity = new GLSLUniform('gravity', 'vec2');
 export const hSmoothing = new GLSLUniform('hSmoothing', 'float');
 export const inputSampler = new GLSLUniform('inputSampler', 'isampler2D');
@@ -51,6 +53,7 @@ export const pressureSampler = new GLSLUniform('pressureSampler', 'sampler2D');
 export const projection = new GLSLUniform('projection', 'mat4');
 export const resolution = new GLSLUniform('resolution', 'ivec2');
 export const restDensity = new GLSLUniform('restDensity', 'float');
+export const restPressure = new GLSLUniform('restPressure', 'float');
 export const sigma = new GLSLUniform('sigma', 'float');
 export const stageWidth = new GLSLUniform('stageWidth', 'int');
 export const stiffness = new GLSLUniform('stiffness', 'float');
@@ -96,10 +99,12 @@ export const resetUniforms = ({
   ]);
   uniforms.set(cellSize, [params.cellWidth, params.cellHeight]);
   uniforms.set(collisionDistance, params.collisionDistance);
+  uniforms.set(colorMode, params.colorMode);
   uniforms.set(densitySampler, {texture: state.gpu.density.read.texture});
   uniforms.set(dt, _dt);
   uniforms.set(eta, params.eta);
   uniforms.set(fPressureSampler, {texture: state.gpu.fPressure.read.texture});
+  uniforms.set(gamma, params.gamma);
   uniforms.set(gravity, params.gravity);
   uniforms.set(hSmoothing, params.hSmoothing);
   uniforms.set(keyParticleResolution, [state.gpu.dataW, state.gpu.dataH]);
@@ -125,6 +130,7 @@ export const resetUniforms = ({
   uniforms.set(projection, computeProjection(gl));
   uniforms.set(resolution, [state.gpu.dataW, state.gpu.dataH]);
   uniforms.set(restDensity, params.restDensity);
+  uniforms.set(restPressure, params.restPressure);
   uniforms.set(sigma, params.sigma);
   uniforms.set(stiffness, params.stiffness);
   uniforms.set(thicknessSampler, {texture: displayTextures.thickness.texture});

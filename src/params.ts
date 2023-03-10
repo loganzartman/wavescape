@@ -1,8 +1,12 @@
+import {COLOR_PRETTY} from './constants';
+
 export type PrimaryParams = {
   cellResolutionX: number;
   cellResolutionY: number;
+  colorMode: number;
   dimension: 2;
   get mode(): 'cpu' | 'webgl';
+  gamma: number;
   gravity: [number, number];
   hSmoothing: number;
   logTimestep: number;
@@ -28,6 +32,7 @@ export type DerivedParams = {
   get cellHeight(): number;
   get collisionDistance(): number;
   get particleVolume(): number;
+  get restPressure(): number;
 };
 
 export type Params = PrimaryParams & DerivedParams;
@@ -52,6 +57,9 @@ export const withDerived = (params: PrimaryParams): Params => ({
   get particleVolume() {
     return (2 * this.particleRadius) ** 2;
   },
+  get restPressure() {
+    return (this.restDensity * this.stiffness ** 2) / this.gamma;
+  },
 });
 
 const searchParams = new URL(document.location.href).searchParams;
@@ -61,14 +69,16 @@ export const makeDefaultParams = (): Params => {
     dimension: 2,
     cellResolutionX: 40,
     cellResolutionY: 40,
+    colorMode: COLOR_PRETTY,
     get mode() {
       return searchParams.has('cpu') ? 'cpu' : 'webgl';
     },
+    gamma: 7,
     gravity: [0, 0.5],
     hSmoothing: 0.03,
     logTimestep: -1.7,
-    metaballScale: 4.0,
-    metaballStretch: 2.0,
+    metaballScale: 3.0,
+    metaballStretch: 1.0,
     metaballThreshold: 0.5,
     particleRestitution: 0.9,
     particleRadius: 0.005,

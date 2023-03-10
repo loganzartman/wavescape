@@ -4,20 +4,18 @@ import {foreachNeighbor} from './foreachNeighbor';
 import {W} from './kernel';
 import {
   densitySampler,
+  gamma,
   phaseSampler,
   positionSampler,
   restDensity,
-  stiffness,
+  restPressure,
 } from './uniforms';
 
 export const updatePressureFs = compile(glsl`
 out vec4 pressureOut;
 
-const float gamma = 7.;
-
 float fluidPressure(float density) {
-  float restPressure = ${restDensity} * ${stiffness} * ${stiffness} / gamma;
-  return restPressure * (pow(density / ${restDensity}, gamma) - 1.);
+  return ${restPressure} * (pow(density / ${restDensity}, ${gamma}) - 1.);
 }
 
 void main() {
