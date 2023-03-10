@@ -1,8 +1,18 @@
 export const rand = (a = 0.0, b = 1.0) => Math.random() * (b - a) + a;
 
-export const length = (x, y): number => Math.sqrt(x * x + y * y);
+export const length = (x: number, y: number): number =>
+  Math.sqrt(x * x + y * y);
 
-export const dot = (x1, y1, x2, y2): number => x1 * x2 + y1 * y2;
+export const dot = (x1: number, y1: number, x2: number, y2: number): number =>
+  x1 * x2 + y1 * y2;
+
+export const normalize = (x: number, y: number): [number, number] => {
+  const l = length(x, y);
+  return [x / l, y / l];
+};
+
+export const clamp = (x: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, x));
 
 export const nextPowerOf2 = (x: number): number => 2 ** Math.ceil(Math.log2(x));
 
