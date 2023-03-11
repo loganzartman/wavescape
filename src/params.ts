@@ -76,8 +76,8 @@ export const makeDefaultParams = (): Params => {
   return withDerived({
     autoSubstep: true,
     dimension: 2,
-    cellResolutionX: 40,
-    cellResolutionY: 40,
+    cellResolutionX: 60,
+    cellResolutionY: 60,
     colorMode: COLOR_PRETTY,
     get mode() {
       return searchParams.has('cpu') ? 'cpu' : 'webgl';
@@ -86,8 +86,8 @@ export const makeDefaultParams = (): Params => {
     gravity: [0, 0.5],
     hSmoothing: 0.03,
     limitSpeed: true,
-    logTimestep: -1.7,
-    maxSubsteps: 10,
+    logTimestep: -1.8,
+    maxSubsteps: 5,
     metaballScale: 3.0,
     metaballStretch: 1.0,
     metaballThreshold: 0.5,
@@ -97,7 +97,7 @@ export const makeDefaultParams = (): Params => {
     restDensity: 10000,
     stiffness: 1.0,
     timestepLambda: 0.4,
-    viscosity: 0.001,
+    viscosity: 0.0005,
     wallRestitution: 0.4,
     worldHeight: 1,
     worldWidth: 1,

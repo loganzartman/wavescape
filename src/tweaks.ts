@@ -80,10 +80,10 @@ export const createTweaks = ({
     x: {min: -1, max: 1},
     y: {min: -1, max: 1},
   });
-  phys.addInput(params, 'hSmoothing', {min: 0});
+  phys.addInput(params, 'hSmoothing', {min: 0, max: 0.1, step: 0.00001});
   phys.addInput(params, 'restDensity', {min: 1});
   phys.addInput(params, 'stiffness', {min: 0});
-  phys.addInput(params, 'viscosity', {min: 0});
+  phys.addInput(params, 'viscosity', {min: 0.00001, max: 0.01, step: 0.00001});
 
   const gfx = root.addFolder({title: 'graphics', expanded: false});
   gfx.addInput(params, 'renderMode', {
