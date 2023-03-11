@@ -58,7 +58,7 @@ export const renderParticles = (
   const circleVAO = getCircleVAO(gl, circleVertices);
 
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  gl.clearColor(1, 1, 1, 1);
+  gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   gl.useProgram(program.program);
@@ -135,7 +135,7 @@ const renderMetaballs = (
   const program = getDrawMetaballsProgram(gl);
 
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  gl.clearColor(1, 1, 1, 1);
+  gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   gl.useProgram(program.program);
@@ -143,7 +143,17 @@ const renderMetaballs = (
 
   uniforms.bind(gl, program);
 
+  // alpha blending
+  gl.enable(gl.BLEND);
+  gl.blendEquation(gl.FUNC_ADD);
+  gl.blendFuncSeparate(
+    gl.SRC_ALPHA,
+    gl.ONE_MINUS_SRC_ALPHA,
+    gl.ONE,
+    gl.ONE_MINUS_SRC_ALPHA
+  );
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+  gl.disable(gl.BLEND);
 
   gl.bindVertexArray(null);
   gl.useProgram(null);
