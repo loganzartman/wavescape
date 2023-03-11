@@ -11,26 +11,26 @@ export const makeDamBreak = ({
   params: Params;
   scene: Scene;
 }) => {
-  const h2 = 0.5 * params.hSmoothing;
+  const h = params.hSmoothing;
   fillRect({
     scene,
     params,
     phase: PHASE_FLUID,
-    x0: h2 + 0,
-    y0: 0.4,
-    x1: 0.2,
-    y1: 1 - h2,
+    x0: 0.1,
+    y0: 0.6,
+    x1: 0.9,
+    y1: 1 - h,
   });
 
-  fillRect({
-    scene,
-    params,
-    phase: PHASE_WALL,
-    x0: 0.48,
-    x1: 0.52,
-    y0: 0.85,
-    y1: 1,
-  });
+  // fillRect({
+  //   scene,
+  //   params,
+  //   phase: PHASE_WALL,
+  //   x0: 0.48,
+  //   x1: 0.52,
+  //   y0: 0.85,
+  //   y1: 1,
+  // });
 
   drawPolyline({
     scene,
@@ -38,11 +38,11 @@ export const makeDamBreak = ({
     phase: PHASE_WALL,
     thickness: params.hSmoothing,
     vertices: [
-      [-h2, -h2],
-      [1 + h2, -h2],
-      [1 + h2, 1 + h2],
-      [-h2, 1 + h2],
-      [-h2, -h2],
+      [-h, -h],
+      [1 + h, -h],
+      [1 + h, 1 + h],
+      [-h, 1 + h],
+      [-h, -h],
     ],
   });
 };
@@ -126,7 +126,7 @@ const forPosInRect = (
   },
   callback: (x: number, y: number) => void
 ) => {
-  const particleSpacing = params.particleRadius * 2;
+  const particleSpacing = params.particleRadius * 2.2;
   const countX = (x1 - x0) / particleSpacing;
   const countY = (y1 - y0) / particleSpacing;
 
