@@ -11,7 +11,7 @@ import {
   pressureSampler,
   restDensity,
   restPressure,
-} from './uniforms';
+} from '../uniforms';
 
 export const updateFPressureFs = compile(glsl`
 out vec4 fPressureOut;

@@ -3,7 +3,7 @@ import {
   cellResolution,
   keyParticleResolution,
   keyParticleSampler,
-} from './uniforms';
+} from '../uniforms';
 
 export const updateCountVs = compile(glsl`
 void main() {

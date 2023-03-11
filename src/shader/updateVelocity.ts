@@ -13,7 +13,7 @@ import {
   velocityGuessSampler,
   velocitySampler,
   wallRestitution,
-} from './uniforms';
+} from '../uniforms';
 
 export const updateVelocityFs = compile(glsl`
 out vec4 outVelocity;

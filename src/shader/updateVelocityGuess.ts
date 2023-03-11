@@ -17,7 +17,7 @@ import {
   resolution,
   velocitySampler,
   viscosity,
-} from './uniforms';
+} from '../uniforms';
 
 export const updateVelocityGuessFs = compile(glsl`
 out vec4 velocityGuessOut;

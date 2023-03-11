@@ -3,7 +3,7 @@ import {
   cellResolution,
   keyParticleResolution,
   keyParticleSampler,
-} from './uniforms';
+} from '../uniforms';
 
 export const updateStartIndexVs = compile(glsl`
 flat out int keyParticleIndex;

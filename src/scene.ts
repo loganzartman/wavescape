@@ -11,14 +11,15 @@ export const makeDamBreak = ({
   params: Params;
   scene: Scene;
 }) => {
+  const h2 = 0.5 * params.hSmoothing;
   fillRect({
     scene,
     params,
     phase: PHASE_FLUID,
-    x0: 0,
+    x0: h2 + 0,
     y0: 0.4,
     x1: 0.2,
-    y1: 1,
+    y1: 1 - h2,
   });
 
   fillRect({
@@ -31,7 +32,6 @@ export const makeDamBreak = ({
     y1: 1,
   });
 
-  const h2 = 0.5 * params.hSmoothing;
   drawPolyline({
     scene,
     params,

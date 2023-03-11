@@ -9,7 +9,7 @@ import {
   keyParticleSampler,
   neighborsTableSampler,
   resolution,
-} from './uniforms';
+} from '../uniforms';
 
 export const foreachNeighbor = new GLSLDefinition(
   'FOREACH_NEIGHBOR',

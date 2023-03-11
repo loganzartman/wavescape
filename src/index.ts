@@ -12,7 +12,7 @@ import {updateSimulationGPU} from './simulationGPU';
 import {renderCanvas2D} from './renderCanvas2D';
 import {renderWebGL} from './renderWebGL';
 import {UniformContext} from './gl/UniformContext';
-import {resetUniforms} from './shader/uniforms';
+import {resetUniforms} from './uniforms';
 import {
   allocateDisplayTextures,
   DisplayTextures,

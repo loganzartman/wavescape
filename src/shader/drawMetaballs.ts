@@ -12,7 +12,7 @@ import {
   restDensity,
   thicknessSampler,
   velocitySampler,
-} from './uniforms';
+} from '../uniforms';
 
 export const drawThicknessVs = compile(glsl`
 in vec2 circleOffset;

@@ -1,7 +1,7 @@
 import {compile, glsl} from '../gl/glslpp';
 import {cellKey} from './cellKey';
 import {posToCell} from './posToCell';
-import {positionSampler, resolution} from './uniforms';
+import {positionSampler, resolution} from '../uniforms';
 
 export const updateKeyIndexPairsFs = compile(glsl`
 out ivec4 keyIndexPair;

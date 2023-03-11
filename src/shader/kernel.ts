@@ -1,6 +1,6 @@
 import {GLSLDefinition} from '../gl/glsl';
 import {glsl} from '../gl/glslpp';
-import {eta, hSmoothing, sigma} from './uniforms';
+import {eta, hSmoothing, sigma} from '../uniforms';
 
 export const W = new GLSLDefinition(
   'W',

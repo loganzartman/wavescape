@@ -19,7 +19,7 @@ import {
   pressureSampler,
   velocityGuessSampler,
   velocitySampler,
-} from './shader/uniforms';
+} from './uniforms';
 
 const DEBUG = false;
 

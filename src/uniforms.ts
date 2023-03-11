@@ -1,10 +1,10 @@
 import {mat4} from 'gl-matrix';
-import {DisplayTextures} from '../displayTextures';
-import {GLSLUniform} from '../gl/glsl';
-import {UniformContext} from '../gl/UniformContext';
-import {Params} from '../params';
-import {getPointerDown, getPointerPos, getPointerVel} from '../pointer';
-import {State} from '../state';
+import {DisplayTextures} from './displayTextures';
+import {GLSLUniform} from './gl/glsl';
+import {UniformContext} from './gl/UniformContext';
+import {Params} from './params';
+import {getPointerDown, getPointerPos, getPointerVel} from './pointer';
+import {State} from './state';
 
 export const cellResolution = new GLSLUniform('cellResolution', 'ivec2');
 export const cellSize = new GLSLUniform('cellSize', 'vec2');

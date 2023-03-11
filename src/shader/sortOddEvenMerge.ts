@@ -5,7 +5,7 @@ import {
   n,
   resolution,
   stageWidth,
-} from './uniforms';
+} from '../uniforms';
 
 export const sortOddEvenMergeFs = compile(glsl`
 out ivec4 outResult;

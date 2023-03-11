@@ -16,7 +16,7 @@ import {
   restPressure,
   time,
   velocitySampler,
-} from './uniforms';
+} from '../uniforms';
 
 export const getParticleColor = new GLSLDefinition(
   'getParticleColor',

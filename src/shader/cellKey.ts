@@ -1,6 +1,6 @@
 import {GLSLDefinition} from '../gl/glsl';
 import {glsl} from '../gl/glslpp';
-import {cellResolution} from './uniforms';
+import {cellResolution} from '../uniforms';
 
 export const cellKey = new GLSLDefinition(
   'cellKey',

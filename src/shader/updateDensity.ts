@@ -1,7 +1,7 @@
 import {compile, glsl} from '../gl/glslpp';
 import {foreachNeighbor} from './foreachNeighbor';
 import {W} from './kernel';
-import {massSampler, positionSampler, resolution} from './uniforms';
+import {massSampler, positionSampler, resolution} from '../uniforms';
 
 export const updateDensityFs = compile(glsl`
 out vec4 densityOut;

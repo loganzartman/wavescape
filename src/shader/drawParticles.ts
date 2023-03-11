@@ -5,7 +5,7 @@ import {
   positionSampler,
   projection,
   resolution,
-} from './uniforms';
+} from '../uniforms';
 
 export const drawParticlesVs = compile(glsl`
 in vec2 circleOffset;
