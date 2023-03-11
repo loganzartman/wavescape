@@ -16,10 +16,10 @@ export const makeDamBreak = ({
     scene,
     params,
     phase: PHASE_FLUID,
-    x0: 0.1,
-    y0: 0.6,
-    x1: 0.9,
-    y1: 1 - h,
+    x0: h,
+    y0: 0.5,
+    x1: 0.5,
+    y1: 0.9,
   });
 
   // fillRect({
@@ -36,7 +36,7 @@ export const makeDamBreak = ({
     scene,
     params,
     phase: PHASE_WALL,
-    thickness: params.hSmoothing,
+    thickness: h,
     vertices: [
       [-h, -h],
       [1 + h, -h],
