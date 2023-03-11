@@ -1,6 +1,7 @@
 import {COLOR_PRETTY} from './constants';
 
 export type PrimaryParams = {
+  autoSubstep: boolean;
   cellResolutionX: number;
   cellResolutionY: number;
   colorMode: number;
@@ -10,6 +11,7 @@ export type PrimaryParams = {
   gravity: [number, number];
   hSmoothing: number;
   logTimestep: number;
+  maxSubsteps: number;
   metaballScale: number;
   metaballStretch: number;
   metaballThreshold: number;
@@ -18,7 +20,7 @@ export type PrimaryParams = {
   renderMode: 'simple' | 'metaballs';
   restDensity: number;
   stiffness: number;
-  substeps: number;
+  timestepLambda: number;
   viscosity: number;
   wallRestitution: number;
   worldHeight: number;
@@ -66,6 +68,7 @@ const searchParams = new URL(document.location.href).searchParams;
 
 export const makeDefaultParams = (): Params => {
   return withDerived({
+    autoSubstep: true,
     dimension: 2,
     cellResolutionX: 40,
     cellResolutionY: 40,
@@ -77,6 +80,7 @@ export const makeDefaultParams = (): Params => {
     gravity: [0, 0.5],
     hSmoothing: 0.03,
     logTimestep: -1.7,
+    maxSubsteps: 10,
     metaballScale: 3.0,
     metaballStretch: 1.0,
     metaballThreshold: 0.5,
@@ -85,7 +89,7 @@ export const makeDefaultParams = (): Params => {
     renderMode: 'metaballs',
     restDensity: 10000,
     stiffness: 1.0,
-    substeps: 2,
+    timestepLambda: 0.4,
     viscosity: 0.001,
     wallRestitution: 0.4,
     worldHeight: 1,

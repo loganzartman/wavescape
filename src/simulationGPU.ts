@@ -5,7 +5,7 @@ import {memoize} from './util';
 import {updatePositionFs} from './shader/updatePosition';
 import {updateVelocityFs} from './shader/updateVelocity';
 import {Params} from './params';
-import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
+import {getCopyVertexVert, getEmptyVAO, getQuadVAO} from './gpuUtil';
 import {updateDensityFs} from './shader/updateDensity';
 import {updateVelocityGuessFs} from './shader/updateVelocityGuess';
 import {updatePressureFs} from './shader/updatePressure';
@@ -19,7 +19,9 @@ import {
   pressureSampler,
   velocityGuessSampler,
   velocitySampler,
+  dt as dtUniform,
 } from './uniforms';
+import {updateMaxSpeedFs, updateMaxSpeedVs} from './shader/updateMaxSpeed';
 
 const DEBUG = false;
 
@@ -283,6 +285,63 @@ export const updateVelocityGPU = (
   gl.useProgram(null);
 };
 
+const getUpdateMaxSpeedVert = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateMaxSpeedVs, type: gl.VERTEX_SHADER})
+);
+
+const getUpdateMaxSpeedFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updateMaxSpeedFs, type: gl.FRAGMENT_SHADER})
+);
+
+const getUpdateMaxSpeedProgram = memoize((gl: WebGL2RenderingContext) =>
+  createProgram(gl, {
+    shaders: [getUpdateMaxSpeedVert(gl), getUpdateMaxSpeedFrag(gl)],
+  })
+);
+
+const computeMaxSpeedGPU = (
+  gl: WebGL2RenderingContext,
+  state: State,
+  uniforms: UniformContext
+): number => {
+  const program = getUpdateMaxSpeedProgram(gl);
+  gl.useProgram(program.program);
+  uniforms.bind(gl, program);
+
+  // each particle will be represented as a single point, but their data is backed by textures.
+  // so, we don't actually need any vertex attributes.
+  gl.bindVertexArray(getEmptyVAO(gl));
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, state.gpu.maxSpeed.framebuffer);
+  gl.viewport(0, 0, 1, 1);
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  gl.enable(gl.BLEND);
+  gl.blendEquation(gl.MAX);
+  gl.blendFunc(gl.ONE, gl.ONE);
+  gl.drawArrays(gl.POINTS, 0, state.capacity);
+  gl.disable(gl.BLEND);
+
+  const result = new Float32Array(1);
+  gl.readPixels(0, 0, 1, 1, gl.RED, gl.FLOAT, result);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.useProgram(null);
+
+  return result[0];
+};
+
+const computeMaxTimestep = (
+  gl: WebGL2RenderingContext,
+  state: State,
+  params: Params,
+  uniforms: UniformContext
+) => {
+  const maxSpeed = computeMaxSpeedGPU(gl, state, uniforms);
+  return (params.timestepLambda * params.particleRadius * 2) / maxSpeed;
+};
+
 export const updateSimulationGPU = ({
   gl,
   state,
@@ -298,7 +357,19 @@ export const updateSimulationGPU = ({
 }) => {
   updateNeighborsGPU(gl, state, params, uniforms);
 
-  for (let i = 0; i < params.substeps; ++i) {
+  let maxDt = dt;
+  if (params.autoSubstep) {
+    maxDt = computeMaxTimestep(gl, state, params, uniforms);
+  }
+
+  let remainingDt = dt;
+  let substep = 0;
+  while (remainingDt > 0 && substep < params.maxSubsteps) {
+    const stepDt = Math.min(maxDt, remainingDt);
+    remainingDt -= stepDt;
+    ++substep;
+    uniforms.set(dtUniform, stepDt);
+
     updateDensityGPU(gl, state, uniforms);
     updateVelocityGuessGPU(gl, state, uniforms);
     updatePressureGPU(gl, state, uniforms);

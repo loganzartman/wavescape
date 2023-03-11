@@ -61,16 +61,20 @@ export const createTweaks = ({
     format: (n) => String(n),
   });
 
-  const scn = root.addFolder({title: 'scene', expanded: true});
+  const scn = root.addFolder({title: 'scene', expanded: false});
   scn.addInput(params, 'particleRadius', {
     min: 1 / 400,
     max: 1 / 100,
   });
   scn.addButton({title: 'apply & reset'}).on('click', onReset);
 
-  const phys = root.addFolder({title: 'physics', expanded: true});
-  phys.addInput(params, 'logTimestep', {min: -4, max: -1.4});
-  phys.addInput(params, 'substeps', {min: 1, max: 10, step: 1});
+  const time = root.addFolder({title: 'time', expanded: false});
+  time.addInput(params, 'logTimestep', {min: -4, max: -1.4});
+  time.addInput(params, 'autoSubstep');
+  time.addInput(params, 'maxSubsteps', {min: 1, max: 20, step: 1});
+  time.addInput(params, 'timestepLambda', {min: 0, max: 1});
+
+  const phys = root.addFolder({title: 'physics', expanded: false});
   phys.addInput(pointProxy(params, 'gravity'), 'gravity', {
     x: {min: -1, max: 1},
     y: {min: -1, max: 1},
@@ -80,7 +84,7 @@ export const createTweaks = ({
   phys.addInput(params, 'stiffness', {min: 0});
   phys.addInput(params, 'viscosity', {min: 0});
 
-  const gfx = root.addFolder({title: 'graphics', expanded: true});
+  const gfx = root.addFolder({title: 'graphics', expanded: false});
   gfx.addInput(params, 'renderMode', {
     options: {simple: 'simple', metaballs: 'metaballs'},
   });

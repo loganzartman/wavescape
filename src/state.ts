@@ -28,6 +28,7 @@ export type GPUState = {
   fPressure: PingPongTexture;
   keyParticlePairs: PingPongTexture;
   neighborsTable: RenderTexture;
+  maxSpeed: RenderTexture;
 };
 
 export type State = {
@@ -148,6 +149,10 @@ const allocateGPUState = ({
     })
   );
 
+  const maxSpeed = new RenderTexture(gl, () =>
+    createTexture2D(gl, {width: 1, height: 1, internalFormat: gl.R32F})
+  );
+
   return {
     dataW,
     dataH,
@@ -161,6 +166,7 @@ const allocateGPUState = ({
     fPressure,
     keyParticlePairs,
     neighborsTable,
+    maxSpeed,
   };
 };
 

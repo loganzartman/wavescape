@@ -229,15 +229,36 @@ const updatePosition = (state: State, params: Params, dt: number) => {
   }
 };
 
+const computeMaxTimestep = (state: State, params: Params) => {
+  let maxSpeed = 0.001;
+  for (let i = 0; i < state.capacity; ++i) {
+    maxSpeed = Math.max(
+      maxSpeed,
+      length(state.cpu.velocity[i * 2 + 0], state.cpu.velocity[i * 2 + 1])
+    );
+  }
+  return (params.timestepLambda * params.particleRadius * 2) / maxSpeed;
+};
+
 export const updateSimulation = (state: State, params: Params, dt: number) => {
   updateNeighbors(state, params);
 
-  for (let i = 0; i < params.substeps; ++i) {
+  let maxDt = dt;
+  if (params.autoSubstep) {
+    maxDt = computeMaxTimestep(state, params);
+  }
+
+  let remainingDt = dt;
+  let substep = 0;
+  while (remainingDt > 0 && substep < params.maxSubsteps) {
+    const stepDt = Math.min(remainingDt, maxDt);
+    remainingDt -= stepDt;
+    ++substep;
     updateDensity(state, params);
-    updateVelocityGuess(state, params, dt);
+    updateVelocityGuess(state, params, stepDt);
     updatePressure(state, params);
     updateFPressure(state, params);
-    updateVelocity(state, params, dt);
-    updatePosition(state, params, dt);
+    updateVelocity(state, params, stepDt);
+    updatePosition(state, params, stepDt);
   }
 };
