@@ -2,7 +2,7 @@ import {createProgram} from './gl/program';
 import {createShader} from './gl/shader';
 import {State} from './state';
 import {memoize} from './util';
-import {advectParticlesFs} from './shader/advectParticles';
+import {updatePositionFs} from './shader/updatePosition';
 import {updateVelocityFs} from './shader/updateVelocity';
 import {Params} from './params';
 import {getCopyVertexVert, getQuadVAO} from './gpuUtil';
@@ -216,22 +216,22 @@ export const updateVelocityGuessGPU = (
   }
 };
 
-const getAdvectParticlesFrag = memoize((gl: WebGL2RenderingContext) =>
-  createShader(gl, {source: advectParticlesFs, type: gl.FRAGMENT_SHADER})
+const getupdatePositionFrag = memoize((gl: WebGL2RenderingContext) =>
+  createShader(gl, {source: updatePositionFs, type: gl.FRAGMENT_SHADER})
 );
 
-const getAdvectParticlesProgram = memoize((gl: WebGL2RenderingContext) =>
+const getupdatePositionProgram = memoize((gl: WebGL2RenderingContext) =>
   createProgram(gl, {
-    shaders: [getCopyVertexVert(gl), getAdvectParticlesFrag(gl)],
+    shaders: [getCopyVertexVert(gl), getupdatePositionFrag(gl)],
   })
 );
 
-export const advectParticlesGPU = (
+export const updatePositionGPU = (
   gl: WebGL2RenderingContext,
   state: State,
   uniforms: UniformContext
 ) => {
-  const program = getAdvectParticlesProgram(gl);
+  const program = getupdatePositionProgram(gl);
   const quadVAO = getQuadVAO(gl);
 
   gl.useProgram(program.program);
@@ -304,6 +304,6 @@ export const updateSimulationGPU = ({
     updatePressureGPU(gl, state, uniforms);
     updateFPressureGPU(gl, state, uniforms);
     updateVelocityGPU(gl, state, uniforms);
-    advectParticlesGPU(gl, state, uniforms);
+    updatePositionGPU(gl, state, uniforms);
   }
 };

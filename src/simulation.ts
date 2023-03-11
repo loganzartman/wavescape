@@ -220,7 +220,7 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
   }
 };
 
-const advectParticles = (state: State, params: Params, dt: number) => {
+const updatePosition = (state: State, params: Params, dt: number) => {
   for (let i = 0; i < state.capacity; ++i) {
     if (state.cpu.phase[i] === PHASE_FLUID) {
       state.cpu.position[i * 2 + 0] += dt * state.cpu.velocity[i * 2 + 0];
@@ -238,6 +238,6 @@ export const updateSimulation = (state: State, params: Params, dt: number) => {
     updatePressure(state, params);
     updateFPressure(state, params);
     updateVelocity(state, params, dt);
-    advectParticles(state, params, dt);
+    updatePosition(state, params, dt);
   }
 };

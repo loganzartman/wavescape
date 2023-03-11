@@ -2,7 +2,7 @@ import {PHASE_FLUID, PHASE_WALL} from '../constants';
 import {compile, glsl} from '../gl/glslpp';
 import {dt, phaseSampler, positionSampler, velocitySampler} from '../uniforms';
 
-export const advectParticlesFs = compile(glsl`
+export const updatePositionFs = compile(glsl`
 out vec4 outPosition;
 
 void main() {
