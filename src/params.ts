@@ -10,6 +10,7 @@ export type PrimaryParams = {
   gamma: number;
   gravity: [number, number];
   hSmoothing: number;
+  limitSpeed: boolean;
   logTimestep: number;
   maxSubsteps: number;
   metaballScale: number;
@@ -35,6 +36,7 @@ export type DerivedParams = {
   get collisionDistance(): number;
   get particleVolume(): number;
   get restPressure(): number;
+  get speedLimit(): number;
 };
 
 export type Params = PrimaryParams & DerivedParams;
@@ -62,6 +64,10 @@ export const withDerived = (params: PrimaryParams): Params => ({
   get restPressure() {
     return (this.restDensity * this.stiffness ** 2) / this.gamma;
   },
+  get speedLimit() {
+    const dt = 10 ** this.logTimestep / this.maxSubsteps;
+    return (this.timestepLambda * this.particleRadius * 2) / dt;
+  },
 });
 
 const searchParams = new URL(document.location.href).searchParams;
@@ -79,6 +85,7 @@ export const makeDefaultParams = (): Params => {
     gamma: 7,
     gravity: [0, 0.5],
     hSmoothing: 0.03,
+    limitSpeed: true,
     logTimestep: -1.7,
     maxSubsteps: 10,
     metaballScale: 3.0,

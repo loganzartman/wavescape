@@ -6,10 +6,12 @@ import {
   dt,
   eta,
   fPressureSampler,
+  limitSpeed,
   massSampler,
   particleRestitution,
   phaseSampler,
   positionSampler,
+  speedLimit,
   velocityGuessSampler,
   velocitySampler,
   wallRestitution,
@@ -68,6 +70,13 @@ void main() {
     }
     if (velocity.y > 0. && ownPos.y > 1.) {
       velocity.y *= -${wallRestitution};
+    }
+  }
+
+  if (${limitSpeed}) {
+    float speed = length(velocity);
+    if (speed > 0.) {
+      velocity = (velocity / speed) * min(speed, ${speedLimit});
     }
   }
 

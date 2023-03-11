@@ -73,6 +73,7 @@ export const createTweaks = ({
   time.addInput(params, 'autoSubstep');
   time.addInput(params, 'maxSubsteps', {min: 1, max: 20, step: 1});
   time.addInput(params, 'timestepLambda', {min: 0, max: 1});
+  time.addInput(params, 'limitSpeed');
 
   const phys = root.addFolder({title: 'physics', expanded: false});
   phys.addInput(pointProxy(params, 'gravity'), 'gravity', {

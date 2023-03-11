@@ -30,6 +30,7 @@ export const keyParticleSampler = new GLSLUniform(
   'keyParticleSampler',
   'isampler2D'
 );
+export const limitSpeed = new GLSLUniform('limitSpeed', 'bool');
 export const massSampler = new GLSLUniform('massSampler', 'sampler2D');
 export const metaballScale = new GLSLUniform('metaballScale', 'float');
 export const metaballThreshold = new GLSLUniform('metaballThreshold', 'float');
@@ -55,6 +56,7 @@ export const resolution = new GLSLUniform('resolution', 'ivec2');
 export const restDensity = new GLSLUniform('restDensity', 'float');
 export const restPressure = new GLSLUniform('restPressure', 'float');
 export const sigma = new GLSLUniform('sigma', 'float');
+export const speedLimit = new GLSLUniform('speedLimit', 'float');
 export const stageWidth = new GLSLUniform('stageWidth', 'int');
 export const stiffness = new GLSLUniform('stiffness', 'float');
 export const time = new GLSLUniform('time', 'float');
@@ -112,6 +114,7 @@ export const resetUniforms = ({
   uniforms.set(keyParticleSampler, {
     texture: state.gpu.keyParticlePairs.read.texture,
   });
+  uniforms.set(limitSpeed, params.limitSpeed);
   uniforms.set(massSampler, {texture: state.gpu.mass.read.texture});
   uniforms.set(metaballScale, params.metaballScale);
   uniforms.set(metaballThreshold, params.metaballThreshold);
@@ -133,6 +136,7 @@ export const resetUniforms = ({
   uniforms.set(restDensity, params.restDensity);
   uniforms.set(restPressure, params.restPressure);
   uniforms.set(sigma, params.sigma);
+  uniforms.set(speedLimit, params.speedLimit);
   uniforms.set(stiffness, params.stiffness);
   uniforms.set(thicknessSampler, {texture: displayTextures.thickness.texture});
   uniforms.set(time, performance.now() / 1000);

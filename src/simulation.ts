@@ -217,6 +217,19 @@ const updateVelocity = (state: State, params: Params, dt: number) => {
       state.cpu.velocity[i * 2 + 0] = 0;
       state.cpu.velocity[i * 2 + 1] = 0;
     }
+
+    if (params.limitSpeed) {
+      const speed = length(
+        state.cpu.velocity[i * 2 + 0],
+        state.cpu.velocity[i * 2 + 1]
+      );
+      if (speed > 0) {
+        state.cpu.velocity[i * 2 + 0] *=
+          Math.min(speed, params.speedLimit) / speed;
+        state.cpu.velocity[i * 2 + 1] *=
+          Math.min(speed, params.speedLimit) / speed;
+      }
+    }
   }
 };
 
