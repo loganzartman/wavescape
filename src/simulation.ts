@@ -8,7 +8,7 @@ import {PHASE_FLUID, PHASE_WALL} from './constants';
 
 export const updateDensity = (state: State, params: Params) => {
   for (let i = 0; i < state.capacity; ++i) {
-    state.cpu.density[i] = state.cpu.mass[i] * W(params, 0, 0);
+    state.cpu.density[i] = 0;
     forEachNeighbor(state, params, i, (j) => {
       const dx = state.cpu.position[j * 2 + 0] - state.cpu.position[i * 2 + 0];
       const dy = state.cpu.position[j * 2 + 1] - state.cpu.position[i * 2 + 1];

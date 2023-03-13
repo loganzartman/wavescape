@@ -11,7 +11,7 @@ void main() {
   float ownMass = texelFetch(${massSampler}, ownTexCoord, 0).x;
   vec2 ownPos = texelFetch(${positionSampler}, ownTexCoord, 0).xy;
 
-  float density = ownMass * ${W}(vec2(0.));
+  float density = 0.;
 
   ${foreachNeighbor}(ownPos, neighborTexCoord, {
     vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
