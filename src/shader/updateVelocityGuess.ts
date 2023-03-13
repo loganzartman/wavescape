@@ -8,7 +8,6 @@ import {
   eta,
   gravity,
   massSampler,
-  particleRadius,
   phaseSampler,
   pointerDown,
   pointerPos,
@@ -35,7 +34,7 @@ void main() {
 
     vec2 laplacianV = vec2(0.);
 
-    ${foreachNeighbor}(neighborTexCoord, {
+    ${foreachNeighbor}(ownPos, neighborTexCoord, {
       ivec2 neighborTexCoord = ivec2(neighborIndex % ${resolution}.x, neighborIndex / ${resolution}.x);
       vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
       vec2 neighborVel = texelFetch(${velocitySampler}, neighborTexCoord, 0).xy;

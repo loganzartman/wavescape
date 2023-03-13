@@ -13,7 +13,6 @@ import {
   positionSampler,
   speedLimit,
   velocityGuessSampler,
-  velocitySampler,
   wallRestitution,
 } from '../uniforms';
 
@@ -36,7 +35,7 @@ void main() {
     // kinematic particle-particle collisions
     float collidedMass = 0.;
     vec2 dvCollsion = vec2(0.);
-    ${foreachNeighbor}(neighborTexCoord, {
+    ${foreachNeighbor}(ownPos, neighborTexCoord, {
       int neighborPhase = texelFetch(${phaseSampler}, neighborTexCoord, 0).x;
       float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;
       vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;

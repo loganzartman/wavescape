@@ -29,7 +29,7 @@ void main() {
     pressure = fluidPressure(ownDensity);
   } else if (ownPhase == ${PHASE_WALL}) {
     float totalKernelValue = 0.;
-    ${foreachNeighbor}(neighborTexCoord, {
+    ${foreachNeighbor}(ownPos, neighborTexCoord, {
       vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
       float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
 

@@ -29,7 +29,7 @@ void main() {
     float ownPressure = texelFetch(${pressureSampler}, ownTexCoord, 0).x;
     float ownVolume = ownMass / ownDensity;
 
-    ${foreachNeighbor}(neighborTexCoord, {
+    ${foreachNeighbor}(ownPos, neighborTexCoord, {
       int neighborPhase = texelFetch(${phaseSampler}, neighborTexCoord, 0).x;
       vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
       float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;

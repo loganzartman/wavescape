@@ -14,11 +14,11 @@ import {
 export const foreachNeighbor = new GLSLDefinition(
   'FOREACH_NEIGHBOR',
   glsl`
-#define FOREACH_NEIGHBOR(TEXCOORD_NAME, BLOCK) \
+#define FOREACH_NEIGHBOR(POS, TEXCOORD_NAME, BLOCK) \
   { \
     int tableSize = ${cellResolution}.x * ${cellResolution}.y; \
-    ivec2 c0 = ${posToCell}(ownPos - vec2(${hSmoothing})); \
-    ivec2 c1 = ${posToCell}(ownPos + vec2(${hSmoothing})); \
+    ivec2 c0 = ${posToCell}((POS) - vec2(${hSmoothing})); \
+    ivec2 c1 = ${posToCell}((POS) + vec2(${hSmoothing})); \
     for (int cx = c0.x; cx <= c1.x; ++cx) { \
       for (int cy = c0.y; cy <= c1.y; ++cy) { \
         int hash = ${cellKey}(ivec2(cx, cy)); \
