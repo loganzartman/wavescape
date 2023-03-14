@@ -24,21 +24,26 @@ void main() {
   vec2 ownPos = texelFetch(${positionSampler}, ownTexCoord, 0).xy;
   float ownDensity = texelFetch(${densitySampler}, ownTexCoord, 0).x;
 
-  float pressure = fluidPressure(ownDensity);
+  float pressure = 0.;
   if (ownPhase == ${PHASE_FLUID}) {
     pressure = fluidPressure(ownDensity);
   } else if (ownPhase == ${PHASE_WALL}) {
     float totalKernelValue = 0.;
     ${foreachNeighbor}(ownPos, neighborTexCoord, {
-      vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
-      float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
+      int neighborPhase = texelFetch(${phaseSampler}, neighborTexCoord, 0).x;
+      if (neighborPhase != ${PHASE_WALL}) {
+        vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
+        float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
 
-      vec2 dx = neighborPos - ownPos;
-      float kernelValue = ${W}(dx);
-      totalKernelValue += kernelValue;
-      pressure += fluidPressure(neighborDensity) * kernelValue;
+        vec2 dx = neighborPos - ownPos;
+        float kernelValue = ${W}(dx);
+        totalKernelValue += kernelValue;
+        pressure += fluidPressure(neighborDensity) * kernelValue;
+      }
     })
-    pressure /= totalKernelValue;
+    if (totalKernelValue != 0.) {
+      pressure /= totalKernelValue;
+    }
   }
 
   pressureOut = vec4(pressure, 0, 0, 0);

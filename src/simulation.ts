@@ -87,16 +87,20 @@ const updatePressure = (state: State, params: Params) => {
       state.cpu.pressure[i] = 0;
       let totalKernelValue = 0;
       forEachNeighbor(state, params, i, (j) => {
-        const dx =
-          state.cpu.position[j * 2 + 0] - state.cpu.position[i * 2 + 0];
-        const dy =
-          state.cpu.position[j * 2 + 1] - state.cpu.position[i * 2 + 1];
-        const kernelValue = W(params, dx, dy);
-        totalKernelValue += kernelValue;
-        // TODO: incorporate body force term
-        state.cpu.pressure[i] += fluidPressure(j) * kernelValue;
+        if (state.cpu.phase[j] !== PHASE_WALL) {
+          const dx =
+            state.cpu.position[j * 2 + 0] - state.cpu.position[i * 2 + 0];
+          const dy =
+            state.cpu.position[j * 2 + 1] - state.cpu.position[i * 2 + 1];
+          const kernelValue = W(params, dx, dy);
+          totalKernelValue += kernelValue;
+          // TODO: incorporate body force term
+          state.cpu.pressure[i] += fluidPressure(j) * kernelValue;
+        }
       });
-      state.cpu.pressure[i] /= totalKernelValue;
+      if (totalKernelValue !== 0) {
+        state.cpu.pressure[i] /= totalKernelValue;
+      }
     } else {
       state.cpu.pressure[i] = 0;
     }
