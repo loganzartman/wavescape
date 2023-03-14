@@ -29,21 +29,25 @@ export const updateVelocityGuess = (
       let laplacianVx = 0;
       let laplacianVy = 0;
       forEachNeighbor(state, params, i, (j) => {
-        const dx =
-          state.cpu.position[i * 2 + 0] - state.cpu.position[j * 2 + 0];
-        const dy =
-          state.cpu.position[i * 2 + 1] - state.cpu.position[j * 2 + 1];
-        const dvx =
-          state.cpu.velocity[i * 2 + 0] - state.cpu.velocity[j * 2 + 0];
-        const dvy =
-          state.cpu.velocity[i * 2 + 1] - state.cpu.velocity[j * 2 + 1];
-        const scale = 2 * (params.dimension + 2);
-        const volume = state.cpu.mass[j] / (state.cpu.density[j] + params.eta);
-        const term = dot(dvx, dvy, dx, dy) / (length(dx, dy) ** 2 + params.eta);
+        if (state.cpu.phase[i] != PHASE_WALL) {
+          const dx =
+            state.cpu.position[i * 2 + 0] - state.cpu.position[j * 2 + 0];
+          const dy =
+            state.cpu.position[i * 2 + 1] - state.cpu.position[j * 2 + 1];
+          const dvx =
+            state.cpu.velocity[i * 2 + 0] - state.cpu.velocity[j * 2 + 0];
+          const dvy =
+            state.cpu.velocity[i * 2 + 1] - state.cpu.velocity[j * 2 + 1];
+          const scale = 2 * (params.dimension + 2);
+          const volume =
+            state.cpu.mass[j] / (state.cpu.density[j] + params.eta);
+          const term =
+            dot(dvx, dvy, dx, dy) / (length(dx, dy) ** 2 + params.eta);
 
-        const [dWx, dWy] = dW(params, dx, dy);
-        laplacianVx += scale * volume * term * dWx;
-        laplacianVy += scale * volume * term * dWy;
+          const [dWx, dWy] = dW(params, dx, dy);
+          laplacianVx += scale * volume * term * dWx;
+          laplacianVy += scale * volume * term * dWy;
+        }
       });
       const fViscosityX = params.viscosity * laplacianVx;
       const fViscosityY = params.viscosity * laplacianVy;

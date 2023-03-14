@@ -1,4 +1,4 @@
-import {PHASE_FLUID} from '../constants';
+import {PHASE_FLUID, PHASE_WALL} from '../constants';
 import {compile, glsl} from '../gl/glslpp';
 import {foreachNeighbor} from './foreachNeighbor';
 import {dW} from './kernel';
@@ -35,19 +35,21 @@ void main() {
     vec2 laplacianV = vec2(0.);
 
     ${foreachNeighbor}(ownPos, neighborTexCoord, {
-      ivec2 neighborTexCoord = ivec2(neighborIndex % ${resolution}.x, neighborIndex / ${resolution}.x);
-      vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
-      vec2 neighborVel = texelFetch(${velocitySampler}, neighborTexCoord, 0).xy;
-      float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;
-      float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
-      
-      vec2 dx = ownPos - neighborPos;
-      vec2 dv = ownVel - neighborVel;
-      float scale = 2. * (2. + 2.); // 2 * (D + 2)
-      float volume = neighborMass / (neighborDensity + ${eta});
-      float term = dot(dv, dx) / (pow(length(dx), 2.) + ${eta});
+      int neighborPhase = texelFetch(${phaseSampler}, neighborTexCoord, 0).x;
+      if (neighborPhase != ${PHASE_WALL}) {
+        vec2 neighborPos = texelFetch(${positionSampler}, neighborTexCoord, 0).xy;
+        vec2 neighborVel = texelFetch(${velocitySampler}, neighborTexCoord, 0).xy;
+        float neighborMass = texelFetch(${massSampler}, neighborTexCoord, 0).x;
+        float neighborDensity = texelFetch(${densitySampler}, neighborTexCoord, 0).x;
+        
+        vec2 dx = ownPos - neighborPos;
+        vec2 dv = ownVel - neighborVel;
+        float scale = 2. * (2. + 2.); // 2 * (D + 2)
+        float volume = neighborMass / (neighborDensity + ${eta});
+        float term = dot(dv, dx) / (pow(length(dx), 2.) + ${eta});
 
-      laplacianV += scale * volume * term * ${dW}(dx);
+        laplacianV += scale * volume * term * ${dW}(dx);
+      }
     })
 
     vec2 fViscosity = ${viscosity} * laplacianV;
