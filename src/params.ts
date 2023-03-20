@@ -9,7 +9,7 @@ export type PrimaryParams = {
   get mode(): 'cpu' | 'webgl';
   gamma: number;
   gravity: [number, number];
-  hSmoothing: number;
+  smoothingScale: number;
   limitSpeed: boolean;
   logTimestep: number;
   maxSubsteps: number;
@@ -34,6 +34,7 @@ export type DerivedParams = {
   get cellWidth(): number;
   get cellHeight(): number;
   get collisionDistance(): number;
+  get hSmoothing(): number;
   get particleVolume(): number;
   get restPressure(): number;
   get speedLimit(): number;
@@ -57,6 +58,9 @@ export const withDerived = (params: PrimaryParams): Params => ({
   },
   get collisionDistance() {
     return this.particleRadius; // TODO: based on rest density
+  },
+  get hSmoothing() {
+    return this.particleRadius * 6 * this.smoothingScale;
   },
   get particleVolume() {
     return (2 * this.particleRadius) ** 2;
@@ -84,7 +88,7 @@ export const makeDefaultParams = (): Params => {
     },
     gamma: 7,
     gravity: [0, 0.5],
-    hSmoothing: 0.03,
+    smoothingScale: 1.0,
     limitSpeed: true,
     logTimestep: -1.8,
     maxSubsteps: 5,
