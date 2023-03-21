@@ -262,8 +262,6 @@ const computeMaxTimestep = (state: State, params: Params) => {
 };
 
 export const updateSimulation = (state: State, params: Params, dt: number) => {
-  updateNeighbors(state, params);
-
   let maxDt = dt;
   if (params.autoSubstep) {
     maxDt = computeMaxTimestep(state, params);
@@ -275,6 +273,9 @@ export const updateSimulation = (state: State, params: Params, dt: number) => {
     const stepDt = Math.min(remainingDt, maxDt);
     remainingDt -= stepDt;
     ++substep;
+
+    updateNeighbors(state, params);
+
     updateDensity(state, params);
     updateVelocityGuess(state, params, stepDt);
     updatePressure(state, params);

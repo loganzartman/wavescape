@@ -355,8 +355,6 @@ export const updateSimulationGPU = ({
   dt: number;
   uniforms: UniformContext;
 }) => {
-  updateNeighborsGPU(gl, state, params, uniforms);
-
   let maxDt = dt;
   if (params.autoSubstep) {
     maxDt = computeMaxTimestep(gl, state, params, uniforms);
@@ -369,6 +367,8 @@ export const updateSimulationGPU = ({
     remainingDt -= stepDt;
     ++substep;
     uniforms.set(dtUniform, stepDt);
+
+    updateNeighborsGPU(gl, state, params, uniforms);
 
     updateDensityGPU(gl, state, uniforms);
     updateVelocityGuessGPU(gl, state, uniforms);
