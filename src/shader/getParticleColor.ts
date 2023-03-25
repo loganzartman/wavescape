@@ -1,4 +1,6 @@
 import {
+  COLOR_DENSITY,
+  COLOR_FPRESSURE,
   COLOR_PRESSURE,
   COLOR_VELOCITY,
   PHASE_FLUID,
@@ -9,10 +11,13 @@ import {glsl} from '../gl/glslpp';
 import {COLOR_PRETTY} from '../constants';
 import {
   colorMode,
+  densitySampler,
+  fPressureSampler,
   phaseSampler,
   positionSampler,
   pressureSampler,
   resolution,
+  restDensity,
   restPressure,
   time,
   velocitySampler,
@@ -33,12 +38,11 @@ const vec3 colorWaterLight = vec3(0.663,0.91,0.863);
 
 vec4 getParticleColor(int particleIndex) {
   ivec2 texCoord = ivec2(particleIndex % ${resolution}.x, particleIndex / ${resolution}.x);
-  int phase = texelFetch(${phaseSampler}, texCoord, 0).x;
-  vec2 pos = texelFetch(${positionSampler}, texCoord, 0).xy;
-  vec2 vel = texelFetch(${velocitySampler}, texCoord, 0).xy;
-  float pressure = texelFetch(${pressureSampler}, texCoord, 0).x;
 
   if (${colorMode} == ${COLOR_PRETTY}) {
+    int phase = texelFetch(${phaseSampler}, texCoord, 0).x;
+    vec2 pos = texelFetch(${positionSampler}, texCoord, 0).xy;
+    vec2 vel = texelFetch(${velocitySampler}, texCoord, 0).xy;
     if (phase == ${PHASE_FLUID}) {
       float speed = length(vel);
       float fSpeed = clamp(speed * 2., 0., 1.); 
@@ -51,11 +55,21 @@ vec4 getParticleColor(int particleIndex) {
     }
     return vec4(1, 0, 1, 1);
   }
-  if (${colorMode} == ${COLOR_VELOCITY}) {
-    return vec4(vel * 2. + 0.5, 0., 1.);
+  if (${colorMode} == ${COLOR_DENSITY}) {
+    float density = texelFetch(${densitySampler}, texCoord, 0).x;
+    return vec4(density / ${restDensity}, 0., -density / ${restDensity}, 1.);
   }
   if (${colorMode} == ${COLOR_PRESSURE}) {
+    float pressure = texelFetch(${pressureSampler}, texCoord, 0).x;
     return vec4(pressure / ${restPressure}, 0., -pressure / ${restPressure}, 1.);
+  }
+  if (${colorMode} == ${COLOR_FPRESSURE}) {
+    vec2 fPressure = texelFetch(${fPressureSampler}, texCoord, 0).xy;
+    return vec4(fPressure * 2. + 0.5, 0., 1.);
+  }
+  if (${colorMode} == ${COLOR_VELOCITY}) {
+    vec2 vel = texelFetch(${velocitySampler}, texCoord, 0).xy;
+    return vec4(vel * 2. + 0.5, 0., 1.);
   }
   return vec4(0, 0, 0, 1);
 }

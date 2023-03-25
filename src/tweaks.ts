@@ -3,7 +3,13 @@ import * as TweakpaneEssentialsPlugin from '@tweakpane/plugin-essentials';
 import {Params} from './params';
 import {State} from './state';
 import {FpsGraphBladeApi} from '@tweakpane/plugin-essentials';
-import {COLOR_PRESSURE, COLOR_PRETTY, COLOR_VELOCITY} from './constants';
+import {
+  COLOR_DENSITY,
+  COLOR_FPRESSURE,
+  COLOR_PRESSURE,
+  COLOR_PRETTY,
+  COLOR_VELOCITY,
+} from './constants';
 
 const pointProxy = (object: any, key: string) => {
   const dim = object[key].length;
@@ -92,8 +98,10 @@ export const createTweaks = ({
   gfx.addInput(params, 'colorMode', {
     options: {
       pretty: COLOR_PRETTY,
-      velocity: COLOR_VELOCITY,
+      density: COLOR_DENSITY,
       pressure: COLOR_PRESSURE,
+      fPressure: COLOR_FPRESSURE,
+      velocity: COLOR_VELOCITY,
     },
   });
   gfx.addInput(params, 'metaballScale', {min: 1, max: 8});
