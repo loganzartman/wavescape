@@ -16,7 +16,6 @@
     "@parcel/transformer-glsl": "^2.8.3",
     "@tweakpane/core": "^1.1.4",
     "eslint": "^8.27.0",
-    "eslint-plugin-react": "^7.31.10",
     "parcel": "^2.7.0",
     "prettier": "^2.7.1",
     "process": "^0.11.10"
@@ -24,8 +23,6 @@
   "dependencies": {
     "@tweakpane/plugin-essentials": "^0.1.8",
     "gl-matrix": "^3.4.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "tweakpane": "^3.1.4"
   }
 }
