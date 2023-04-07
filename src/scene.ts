@@ -47,7 +47,7 @@ export const makeDamBreak = ({
   });
 };
 
-type Particle = {
+export type Particle = {
   phase: number;
   mass: number;
   x: number;
@@ -55,7 +55,7 @@ type Particle = {
   vx?: number;
   vy?: number;
 };
-type Scene = {particles: Particle[]};
+export type Scene = {particles: Particle[]};
 
 export const createScene = (): Scene => ({particles: []});
 

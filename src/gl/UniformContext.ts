@@ -111,4 +111,8 @@ export class UniformContext {
     result.values = new Map(this.values.entries());
     return result;
   }
+
+  clear() {
+    this.values.clear();
+  }
 }

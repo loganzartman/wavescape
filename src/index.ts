@@ -1,180 +1,67 @@
 import './reset.css';
 import './index.css';
-import {createScene, makeDamBreak, setStateFromScene} from './scene';
-import {State, createState} from './state';
-import {Params, makeDefaultParams} from './params';
-import {updateSimulation} from './simulation';
-import {initPointer, updatePointer} from './pointer';
-import {autoSetGraphRange, createTweaks} from './tweaks';
-import {profileWrapper, enableFloatTexture} from './gl/gl';
-import {testSort} from './sortGPU';
-import {updateSimulationGPU} from './simulationGPU';
-import {renderCanvas2D} from './renderCanvas2D';
-import {renderWebGL} from './renderWebGL';
-import {UniformContext} from './gl/UniformContext';
-import {resetUniforms} from './uniforms';
+import {createScene, makeDamBreak} from './scene';
 import {
-  allocateDisplayTextures,
-  DisplayTextures,
-  resizeDisplayTextures,
-} from './displayTextures';
+  engineDraw,
+  engineInit,
+  engineResetScene,
+  EngineState,
+  engineStep,
+} from './engine';
+import {autoSetGraphRange, createTweaks} from './tweaks';
 
-type RunnerState = {
-  running: boolean;
-  step: boolean;
-  tLast: number;
-};
-
-const resize = (
-  canvas: HTMLCanvasElement,
-  gl: WebGL2RenderingContext | null,
-  displayTextures: DisplayTextures | null
-) => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  if (gl) {
-    resizeDisplayTextures(gl, displayTextures, {
-      width: canvas.width,
-      height: canvas.height,
-    });
-  }
-};
-
-const reset = ({
-  state,
-  params,
-  canvas,
-}: {
-  state: State;
-  params: Params;
-  canvas: HTMLCanvasElement;
-}) => {
+const reset = (engine: EngineState) => {
+  const {params} = engine;
   const scene = createScene();
   makeDamBreak({params, scene});
-  const gl = params.mode === 'webgl' ? canvas.getContext('webgl2') : null;
-  setStateFromScene({scene, state, params, gl});
+  engineResetScene(engine, scene);
 };
 
-const initKeybinds = ({
-  canvas,
-  runnerState,
-  state,
-  params,
-}: {
-  canvas: HTMLCanvasElement;
-  runnerState: RunnerState;
-  state: State;
-  params: Params;
-}) => {
+const initKeybinds = (engine: EngineState) => {
   addEventListener(
     'keydown',
     (event) => {
       if (event.code == 'Space') {
-        runnerState.running = !runnerState.running;
+        engine.running = !engine.running;
       }
       if (event.code == 'KeyR') {
-        reset({state, params, canvas});
+        reset(engine);
       }
       if (event.code == 'KeyS') {
-        runnerState.step = true;
+        engine.step = true;
       }
     },
     false
   );
 };
 
-const frame = ({
-  canvas,
-  runnerState,
-  state,
-  params,
-  displayTextures,
-}: {
-  canvas: HTMLCanvasElement;
-  runnerState: RunnerState;
-  state: State;
-  params: Params;
-  displayTextures: DisplayTextures;
-}) => {
-  const dt = 10 ** params.logTimestep;
-  const realDt = (Date.now() - runnerState.tLast) / 1000;
-  runnerState.tLast = Date.now();
-
-  updatePointer(realDt);
-
-  const uniforms = new UniformContext();
-  if (params.mode === 'webgl') {
-    const gl = profileWrapper(canvas.getContext('webgl2'));
-    resetUniforms({uniforms, gl, state, displayTextures, params, dt});
-  }
-
-  if (runnerState.running || runnerState.step) {
-    if (params.mode === 'cpu') {
-      updateSimulation(state, params, dt);
-    } else {
-      const gl = profileWrapper(canvas.getContext('webgl2'));
-      updateSimulationGPU({gl, state, params, dt, uniforms});
-    }
-    runnerState.step = false;
-  }
-
-  if (params.mode === 'cpu') {
-    const ctx = canvas.getContext('2d');
-    renderCanvas2D(ctx, state, params);
-  } else {
-    const gl = profileWrapper(canvas.getContext('webgl2'));
-    renderWebGL({gl, displayTextures, state, uniforms, params});
-  }
-};
-
 const init = () => {
-  const params: Params = makeDefaultParams();
-  const canvas = document.createElement('canvas');
+  const engine = engineInit({
+    containerSelector: '#container',
+    clockMs: Date.now(),
+  });
+  reset(engine);
 
-  let gl: WebGL2RenderingContext | null = null;
-  if (params.mode === 'webgl') {
-    gl = canvas.getContext('webgl2');
-    if (!gl) {
-      throw new Error('Failed to get WebGL2 context');
-    }
-    if (!enableFloatTexture(gl)) {
-      throw new Error('Device does not support rendering to float texture');
-    }
-    // testSort(gl);
-  }
+  initKeybinds(engine);
 
-  const runnerState: RunnerState = {
-    running: true,
-    step: false,
-    tLast: Date.now(),
-  };
-
-  const state: State = createState();
-  const displayTextures: DisplayTextures = allocateDisplayTextures();
-
-  document.getElementById('container')!.appendChild(canvas);
-  addEventListener('resize', () => resize(canvas, gl, displayTextures), false);
-
-  resize(canvas, gl, displayTextures);
-  reset({state, params, canvas});
-  initPointer();
-  initKeybinds({canvas, runnerState, state, params});
   const {fpsGraph} = createTweaks({
-    params,
-    state,
+    params: engine.params,
+    state: engine.state,
     onReset: () => {
-      reset({state, params, canvas});
+      reset(engine);
     },
   });
 
-  const runFrame = () => {
+  const frame = () => {
     fpsGraph.begin();
-    frame({canvas, runnerState, state, params, displayTextures});
+    engineStep(engine, {clockMs: Date.now()});
+    engineDraw(engine);
     fpsGraph.end();
     autoSetGraphRange(fpsGraph);
-    requestAnimationFrame(runFrame);
+
+    requestAnimationFrame(frame);
   };
-  requestAnimationFrame(runFrame);
+  requestAnimationFrame(frame);
 };
 
 init();
