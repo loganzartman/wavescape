@@ -76,7 +76,9 @@ export const withDerived = (params: PrimaryParams): Params => ({
 
 const searchParams = new URL(document.location.href).searchParams;
 
-export const makeDefaultParams = (): Params => {
+export const makeDefaultParams = (
+  overrides?: Partial<PrimaryParams>
+): Params => {
   return withDerived({
     autoSubstep: true,
     dimension: 2,
@@ -105,5 +107,6 @@ export const makeDefaultParams = (): Params => {
     wallRestitution: 0.4,
     worldHeight: 1,
     worldWidth: 1,
+    ...overrides,
   });
 };

@@ -8,11 +8,15 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "packageManager": "pnpm@7.18.0",
   "scripts": {
-    "start": "yarn parcel",
-    "build": "yarn parcel build --public-url ./"
+    "start": "pnpm parcel",
+    "build": "pnpm parcel build --public-url ./",
+    "test": "pnpm exec playwright test --workers 1",
+    "test-debug": "pnpm exec playwright test --debug --workers 1",
+    "serve-integration": "pnpm parcel \"test/integration/*.html\""
   },
   "devDependencies": {
     "@parcel/core": "^2.8.3",
+    "@playwright/test": "^1.32.2",
     "@tweakpane/core": "^1.1.4",
     "eslint": "^8.27.0",
     "parcel": "^2.7.0",

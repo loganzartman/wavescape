@@ -43,11 +43,12 @@ const resize = (engine: EngineState) => {
 export const engineInit = ({
   containerSelector,
   clockMs,
+  params = makeDefaultParams(),
 }: {
   containerSelector: string;
   clockMs: number;
+  params?: Params;
 }): EngineState => {
-  const params: Params = makeDefaultParams();
   const canvas = document.createElement('canvas');
 
   let gl: WebGL2RenderingContext | null = null;
@@ -84,7 +85,6 @@ export const engineInit = ({
   };
 
   resize(engine);
-  console.log('wavescape initialized');
   return engine;
 };
 

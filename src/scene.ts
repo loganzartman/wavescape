@@ -11,6 +11,8 @@ export const makeDamBreak = ({
   params: Params;
   scene: Scene;
 }) => {
+  makeWalls({params, scene});
+
   const h = params.hSmoothing;
   fillRect({
     scene,
@@ -31,7 +33,10 @@ export const makeDamBreak = ({
   //   y0: 0.85,
   //   y1: 1,
   // });
+};
 
+export const makeWalls = ({params, scene}: {params: Params; scene: Scene}) => {
+  const h = params.hSmoothing;
   drawPolyline({
     scene,
     params,
@@ -145,12 +150,16 @@ export const drawPolyline = ({
   phase,
   thickness,
   vertices,
+  vx = 0,
+  vy = 0,
 }: {
   scene: Scene;
   params: Params;
   phase: number;
   thickness: number;
   vertices: Array<[number, number]>;
+  vx?: number;
+  vy?: number;
 }) => {
   if (vertices.length < 2) throw new Error('must have at least 3 vertices');
 
@@ -192,6 +201,8 @@ export const drawPolyline = ({
           y,
           mass: params.restDensity * params.particleVolume,
           phase,
+          vx,
+          vy,
         });
         break;
       }
@@ -207,6 +218,8 @@ export const fillRect = ({
   y0,
   x1,
   y1,
+  vx = 0,
+  vy = 0,
 }: {
   scene: Scene;
   params: Params;
@@ -215,6 +228,8 @@ export const fillRect = ({
   y0: number;
   x1: number;
   y1: number;
+  vx?: number;
+  vy?: number;
 }) => {
   forPosInRect({params, x0, y0, x1, y1}, (x, y) => {
     scene.particles.push({
@@ -222,6 +237,8 @@ export const fillRect = ({
       y,
       mass: params.restDensity * params.particleVolume,
       phase,
+      vx,
+      vy,
     });
   });
 };
