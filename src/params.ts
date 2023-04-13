@@ -1,4 +1,4 @@
-import {COLOR_PRETTY} from './constants';
+import {COLOR_PRETTY, PHASE_FLUID, PHASE_WALL} from './constants';
 
 export type PrimaryParams = {
   autoSubstep: boolean;
@@ -20,6 +20,7 @@ export type PrimaryParams = {
   particleRestitution: number;
   renderMode: 'simple' | 'metaballs';
   restDensity: number;
+  sceneJSON: string;
   stiffness: number;
   timestepLambda: number;
   viscosity: number;
@@ -76,6 +77,19 @@ export const withDerived = (params: PrimaryParams): Params => ({
 
 const searchParams = new URL(document.location.href).searchParams;
 
+const defaultSceneJSON = {
+  objects: [
+    {
+      type: 'fill',
+      phase: PHASE_FLUID,
+      x0: 0.01,
+      y0: 0.5,
+      x1: 0.5,
+      y1: 0.9,
+    },
+  ],
+};
+
 export const makeDefaultParams = (
   overrides?: Partial<PrimaryParams>
 ): Params => {
@@ -101,6 +115,7 @@ export const makeDefaultParams = (
     particleRadius: 0.005,
     renderMode: 'metaballs',
     restDensity: 10000,
+    sceneJSON: JSON.stringify(defaultSceneJSON, undefined, 2),
     stiffness: 1.0,
     timestepLambda: 0.4,
     viscosity: 0.0005,

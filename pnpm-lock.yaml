@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@pangenerator/tweakpane-textarea-plugin': ^1.0.4
   '@parcel/core': ^2.8.3
   '@playwright/test': ^1.32.2
   '@tweakpane/core': ^1.1.4
@@ -12,6 +13,7 @@ specifiers:
   tweakpane: ^3.1.4
 
 dependencies:
+  '@pangenerator/tweakpane-textarea-plugin': 1.0.4_tweakpane@3.1.4
   '@tweakpane/plugin-essentials': 0.1.8_tweakpane@3.1.4
   gl-matrix: 3.4.3
   tweakpane: 3.1.4
@@ -256,6 +258,14 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
     dev: true
+
+  /@pangenerator/tweakpane-textarea-plugin/1.0.4_tweakpane@3.1.4:
+    resolution: {integrity: sha512-fVQJBT456ssOFVcJiqduzQVLVqw4lAItx6hwaVOsUe9+hyKFhWUqcHi93lGcGOtDz3YhSKhfyIJPKOzwTCNiGw==}
+    peerDependencies:
+      tweakpane: ^3.0.5
+    dependencies:
+      tweakpane: 3.1.4
+    dev: false
 
   /@parcel/bundler-default/2.8.3_@parcel+core@2.8.3:
     resolution: {integrity: sha512-yJvRsNWWu5fVydsWk3O2L4yIy3UZiKWO2cPDukGOIWMgp/Vbpp+2Ct5IygVRtE22bnseW/E/oe0PV3d2IkEJGg==}

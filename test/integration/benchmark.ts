@@ -6,7 +6,7 @@ import {
   engineResetScene,
   engineStep,
 } from '../../src/engine';
-import {createScene, fillRect, makeDamBreak, makeWalls} from '../../src/scene';
+import {createScene, fillRect, makeWalls} from '../../src/scene';
 import {PHASE_FLUID} from '../../src/constants';
 import {makeDefaultParams} from '../../src/params';
 

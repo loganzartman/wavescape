@@ -1,8 +1,8 @@
 import {Pane} from 'tweakpane';
 import * as TweakpaneEssentialsPlugin from '@tweakpane/plugin-essentials';
+import * as TextareaPlugin from '@pangenerator/tweakpane-textarea-plugin';
 import {Params} from './params';
 import {State} from './state';
-import {FpsGraphBladeApi} from '@tweakpane/plugin-essentials';
 import {
   COLOR_DENSITY,
   COLOR_FPRESSURE,
@@ -41,6 +41,7 @@ export const createTweaks = ({
 }): {fpsGraph: any} => {
   const pane = new Pane();
   pane.registerPlugin(TweakpaneEssentialsPlugin);
+  pane.registerPlugin(TextareaPlugin);
 
   const root = pane.addFolder({title: 'settings', expanded: false});
 
@@ -71,6 +72,11 @@ export const createTweaks = ({
   scn.addInput(params, 'particleRadius', {
     min: 1 / 400,
     max: 1 / 100,
+  });
+  scn.addInput(params, 'sceneJSON', {
+    view: 'textarea',
+    lineCount: 5,
+    placeholder: '',
   });
   scn.addButton({title: 'apply & reset'}).on('click', onReset);
 

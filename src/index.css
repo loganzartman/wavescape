@@ -2,6 +2,10 @@
   --tp-font-family: sans-serif;
 }
 
+.tp-txtrv {
+  --font-family: monospace;
+}
+
 #container canvas {
   touch-action: none;
 }

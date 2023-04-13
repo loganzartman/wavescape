@@ -1,6 +1,6 @@
 import './reset.css';
 import './index.css';
-import {createScene, makeDamBreak} from './scene';
+import {createSceneFromJSON, makeWalls} from './scene';
 import {
   engineDraw,
   engineInit,
@@ -12,8 +12,11 @@ import {autoSetGraphRange, createTweaks} from './tweaks';
 
 const reset = (engine: EngineState) => {
   const {params} = engine;
-  const scene = createScene();
-  makeDamBreak({params, scene});
+  const scene = createSceneFromJSON({
+    params,
+    json: JSON.parse(params.sceneJSON),
+  });
+  makeWalls({params, scene});
   engineResetScene(engine, scene);
 };
 

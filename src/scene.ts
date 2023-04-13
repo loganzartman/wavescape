@@ -1,39 +1,8 @@
 import {State, setCapacity} from './state';
 import {Params} from './params';
-import {PHASE_FLUID, PHASE_WALL} from './constants';
+import {PHASE_WALL} from './constants';
 import {copyStateToGPU} from './copyState';
-import {clamp, dot, length, normalize} from './util';
-
-export const makeDamBreak = ({
-  params,
-  scene,
-}: {
-  params: Params;
-  scene: Scene;
-}) => {
-  makeWalls({params, scene});
-
-  const h = params.hSmoothing;
-  fillRect({
-    scene,
-    params,
-    phase: PHASE_FLUID,
-    x0: h,
-    y0: 0.5,
-    x1: 0.5,
-    y1: 0.9,
-  });
-
-  // fillRect({
-  //   scene,
-  //   params,
-  //   phase: PHASE_WALL,
-  //   x0: 0.48,
-  //   x1: 0.52,
-  //   y0: 0.85,
-  //   y1: 1,
-  // });
-};
+import {clamp, dot, length} from './util';
 
 export const makeWalls = ({params, scene}: {params: Params; scene: Scene}) => {
   const h = params.hSmoothing;
@@ -63,6 +32,29 @@ export type Particle = {
 export type Scene = {particles: Particle[]};
 
 export const createScene = (): Scene => ({particles: []});
+
+export const createSceneFromJSON = ({
+  params,
+  json,
+}: {
+  params: Params;
+  json: object;
+}): Scene => {
+  const scene = createScene();
+  if ('objects' in json) {
+    if (!Array.isArray(json.objects)) throw new Error('objects must be a list');
+    for (const {type, ...args} of json.objects) {
+      if (type === 'fill') {
+        fillRect({scene, params, ...args});
+      } else if (type === 'polyline') {
+        drawPolyline({scene, params, ...args});
+      } else {
+        throw new Error(`unsupported object type: '${type}'`);
+      }
+    }
+  }
+  return scene;
+};
 
 export const setStateFromScene = ({
   scene,
