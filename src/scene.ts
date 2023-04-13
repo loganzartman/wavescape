@@ -123,7 +123,7 @@ const forPosInRect = (
   },
   callback: (x: number, y: number) => void
 ) => {
-  const particleSpacing = params.particleRadius * 2.2;
+  const particleSpacing = params.particleRadius * 2;
   const countX = (x1 - x0) / particleSpacing;
   const countY = (y1 - y0) / particleSpacing;
 
