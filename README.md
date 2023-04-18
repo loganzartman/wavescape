@@ -2,7 +2,7 @@
 
 WIP interactive, GPU-accelerated fluid simulation using smoothed particle hydrodynamics.
 
-runs almost entirely in WebGL2!
+It can do all the simulation work on the GPU using WebGL2! It **doesn't** use WebGL2 Compute, which isn't widely supported. Instead, it does tricks with regular vertex and fragment shaders.
 
 [try it!](https://loganzartman.github.io/wavescape)
 
