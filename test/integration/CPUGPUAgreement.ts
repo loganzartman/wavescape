@@ -11,7 +11,15 @@ import {PHASE_FLUID} from '../../src/constants';
 import {copyStateFromGPU} from '../../src/copyState';
 import {makeDefaultParams} from '../../src/params';
 
-const tolerance = 1e-6;
+const replaceTypedArrays = (o: object | null) =>
+  o === null
+    ? null
+    : Object.fromEntries(
+        Object.entries(o).map(([k, v]) => [
+          k,
+          'length' in v ? Array.from(v) : v,
+        ])
+      );
 
 const init = () => {
   const cpuEngine = engineInit({
@@ -22,7 +30,7 @@ const init = () => {
   const gpuEngine = engineInit({
     containerSelector: '#containerGPU',
     clockMs: 0,
-    params: makeDefaultParams({mode: 'webgl'}),
+    params: makeDefaultParams({mode: 'webgl', renderMode: 'simple'}),
   });
 
   const {params} = cpuEngine;
@@ -42,40 +50,18 @@ const init = () => {
 
   let clockMs = 0;
 
-  (window as any)._CHECK_CPU_NAN = () => {
-    const cpuPositions = Array.from(cpuEngine.state.cpu!.position);
-    return cpuPositions.some((value) => Number.isNaN(value));
+  (window as any)._getCPUState = () => {
+    return replaceTypedArrays(cpuEngine.state.cpu);
   };
-
-  (window as any)._CHECK_GPU_NAN = () => {
+  (window as any)._getGPUState = () => {
     // copy GPU state to CPU buffers
-    {
-      const {state, params, canvas} = gpuEngine;
-      const gl = canvas.getContext('webgl2')!;
-      copyStateFromGPU(gl, state, params);
-    }
-
-    const gpuPositions = Array.from(gpuEngine.state.cpu!.position);
-    return gpuPositions.some((value) => Number.isNaN(value));
+    const {state, params, canvas} = gpuEngine;
+    const gl = canvas.getContext('webgl2')!;
+    copyStateFromGPU(gl, state, params);
+    return replaceTypedArrays(gpuEngine.state.cpu);
   };
 
-  (window as any)._CHECK_AGREEMENT = () => {
-    // copy GPU state to CPU buffers
-    {
-      const {state, params, canvas} = gpuEngine;
-      const gl = canvas.getContext('webgl2')!;
-      copyStateFromGPU(gl, state, params);
-    }
-
-    // compare CPU and GPU state
-    const cpuPositions = Array.from(cpuEngine.state.cpu!.position);
-    const gpuPositions = Array.from(gpuEngine.state.cpu!.position);
-    return cpuPositions.every(
-      (expected, i) => Math.abs(expected - gpuPositions[i]) < tolerance
-    );
-  };
-
-  (window as any)._RUN_STEP = () => {
+  (window as any)._runStep = () => {
     ++clockMs;
     engineStep(cpuEngine, {clockMs});
     engineStep(gpuEngine, {clockMs});
