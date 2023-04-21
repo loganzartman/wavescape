@@ -4,6 +4,7 @@ import {foreachNeighbor} from './foreachNeighbor';
 import {dW} from './kernel';
 import {
   densitySampler,
+  eta,
   gamma,
   massSampler,
   phaseSampler,
@@ -27,7 +28,7 @@ void main() {
     float ownMass = texelFetch(${massSampler}, ownTexCoord, 0).x;
     float ownDensity = texelFetch(${densitySampler}, ownTexCoord, 0).x;
     float ownPressure = texelFetch(${pressureSampler}, ownTexCoord, 0).x;
-    float ownVolume = ownMass / ownDensity;
+    float ownVolume = ownDensity > 0.0 ? ownMass / ownDensity : 0.0;
 
     ${foreachNeighbor}(ownPos, neighborTexCoord, {
       int neighborPhase = texelFetch(${phaseSampler}, neighborTexCoord, 0).x;
@@ -45,11 +46,11 @@ void main() {
       
       float avgPressure = 
         (neighborDensity * ownPressure + ownDensity * neighborPressure) 
-        / (ownDensity + neighborDensity);
-      float neighborVolume = neighborMass / neighborDensity;
+        / (ownDensity + neighborDensity + ${eta});
+      float neighborVolume = neighborDensity > 0.0 ? neighborMass / neighborDensity : 0.0;
       fPressure += (ownVolume * ownVolume + neighborVolume * neighborVolume) * avgPressure * dWx;
     })
-    fPressure *= 1. / ownMass;
+    fPressure *= ownMass > 0.0 ? 1. / ownMass : 1.0;
   }
 
   fPressureOut = vec4(fPressure, 0, 0);

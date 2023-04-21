@@ -30,7 +30,7 @@ void main() {
     vec2 ownPos = texelFetch(${positionSampler}, texCoord, 0).rg;
     float ownMass = texelFetch(${massSampler}, texCoord, 0).r;
     vec2 fPressure = texelFetch(${fPressureSampler}, texCoord, 0).rg;
-    velocity = velocityGuess + (${dt} / ownMass) * fPressure;
+    velocity = ownMass > 0.0 ? velocityGuess + (${dt} / ownMass) * fPressure : velocityGuess;
 
     // kinematic particle-particle collisions
     float collidedMass = 0.;
@@ -42,9 +42,9 @@ void main() {
       vec2 neighborVelGuess = texelFetch(${velocityGuessSampler}, neighborTexCoord, 0).xy;
       vec2 dx = ownPos - neighborPos;
       vec2 dv = velocityGuess - neighborVelGuess;
-      float d = length(dx) + ${eta};
+      float d = length(dx);
       float dotDxDv = dot(dx, dv);
-      if (d < ${collisionDistance} && dotDxDv < 0.) {
+      if (d > 0.0 && d < ${collisionDistance} && dotDxDv < 0.) {
         if (neighborPhase == ${PHASE_FLUID}) {
           collidedMass += neighborMass;
           dvCollsion += neighborMass * (1. + ${particleRestitution}) * (dotDxDv / d) * (dx / d);
@@ -54,8 +54,10 @@ void main() {
       }
     })
 
-    float collisionTerm = 1. / (ownMass + collidedMass);
-    velocity -= collisionTerm * dvCollsion;
+    float sumMass = ownMass + collidedMass;
+    if (sumMass > 0.0) {
+      velocity -= 1. / sumMass * dvCollsion;
+    }
 
     // kinematic particle-wall collisions
     if (velocity.x < 0. && ownPos.x < 0.) {

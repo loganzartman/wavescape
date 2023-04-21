@@ -45,10 +45,14 @@ void main() {
         vec2 dx = ownPos - neighborPos;
         vec2 dv = ownVel - neighborVel;
         float scale = 2. * (2. + 2.); // 2 * (D + 2)
-        float volume = neighborMass / (neighborDensity + ${eta});
-        float term = dot(dv, dx) / (pow(length(dx), 2.) + ${eta});
+        float len = length(dx);
 
-        laplacianV += scale * volume * term * ${dW}(dx);
+        if (neighborDensity > 0.0 && len > 0.0) {
+          float volume = neighborMass / neighborDensity;
+          float term = dot(dv, dx) / pow(len, 2.);
+
+          laplacianV += scale * volume * term * ${dW}(dx);
+        }
       }
     })
 
@@ -60,7 +64,7 @@ void main() {
 
     vec2 fExt = fGrav + fPointer;
 
-    velocityGuess = ownVel + (${dt} / ownMass) * (fViscosity + fExt);
+    velocityGuess = ownMass > 0.0 ? ownVel + (${dt} / ownMass) * (fViscosity + fExt) : ownVel;
   }
 
   velocityGuessOut = vec4(velocityGuess, 0, 0);
