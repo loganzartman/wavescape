@@ -28,3 +28,4 @@ It can do all the simulation work on the GPU using WebGL2! It **doesn't** use We
   - a lot of detail is missing from the slides unfortunately
 - [SPH Particle Collisions for the Reduction of Particle Clustering, Interface Stabilisation and Wall Modelling](https://www.scirp.org/journal/paperinformation.aspx?paperid=87356)
 - [A generalized wall boundary condition for smoothed particle hydrodynamics](https://www.sciencedirect.com/science/article/pii/S002199911200229X)
+  - this also provides some great details about their SPH implementation in general, and I referenced it frequently.
